@@ -1,6 +1,5 @@
 package au.com.redmars;
 
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 
 public class Card {
@@ -11,6 +10,5 @@ public class Card {
         this.faceValue = faceValue;
         this.suit = suit;
         this.image = image;
-        this.image.scale(-.8F);
     }
 }
