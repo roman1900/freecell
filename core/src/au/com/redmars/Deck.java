@@ -2,6 +2,7 @@ package au.com.redmars;
 
 import java.util.Random;
 
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 
@@ -12,7 +13,7 @@ public class Deck {
     Card[] deck = new Card[deckSize];
     Texture cardTileSet = new Texture("modern_13x4x560x780.png");
 
-    public void Deal() {
+    public void Deal(OrthographicCamera camera) {
         Random r = new Random();
         for (int i = deckSize-1; i > 0; i--) {
               
@@ -24,6 +25,16 @@ public class Deck {
             deck[i] = deck[j];
             deck[j] = temp;
         }
+        float x = 10.0F;
+		float startY = camera.viewportHeight - 30 - cardHeight * 2;
+		float y = startY;
+		for (int i = 0; i < deck.length; ++i) {
+			deck[i].image.setPosition(x, y);
+			x = x + cardWidth + 10;
+			if (x > camera.viewportWidth - cardWidth) x = 10;
+			y = startY - (160 * ((i + 1)/ 8));
+			 
+		}
     }
     Deck(){
         for (int c = 0; c < deckSize; ++c){
