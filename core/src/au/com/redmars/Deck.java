@@ -15,6 +15,7 @@ public class Deck {
     private final Integer cardHeight = 780; 
     private final Integer cardWidth = 560;
     private final Integer boardColumns = 8;
+    private final Integer cardMargin = 56;
     private float y = 0;
     private float x = 0;
     private Integer maxColLength = 0;
@@ -31,6 +32,15 @@ public class Deck {
             System.out.println();
         }
     }
+    public int getCardMargin() {
+        return cardMargin;
+    }
+    public int getCardHeight() {
+        return cardHeight;
+    }
+    public int getCardWidth() {
+        return cardWidth;
+    }
     public void Deal(OrthographicCamera camera) {
         Random r = new Random();
         for (int i = deckSize-1; i > 0; i--) {
@@ -43,8 +53,8 @@ public class Deck {
             deck[i] = deck[j];
             deck[j] = temp;
         }
-        x = 60.0F;
-		float startY = camera.viewportHeight - 60 - cardHeight * 2;
+        x = cardMargin * 2;
+		float startY = camera.viewportHeight - cardMargin * 2 - cardHeight * 2;
 		y = startY;
         for (int i = 0; i < deck.length; ++i) {
             if (i <boardColumns) {
@@ -77,7 +87,7 @@ public class Deck {
                 }
                 topCard = c; 
             }
-            x = x + cardWidth + 10;
+            x = x + cardWidth + cardMargin;
             y = startY;
         }
     }
