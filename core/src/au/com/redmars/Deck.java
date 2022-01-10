@@ -1,7 +1,6 @@
 package au.com.redmars;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Random;
@@ -13,16 +12,16 @@ import com.badlogic.gdx.math.Rectangle;
 
 public class Deck {
     private final Integer deckSize = 52;
-    private final Integer cardHeight = 780;
+    private final Integer cardHeight = 780; 
     private final Integer cardWidth = 560;
     private final Integer boardColumns = 8;
     private float y = 0;
-    private float x = 10.0F;
+    private float x = 0;
     private Integer maxColLength = 0;
 
     Card[] deck = new Card[deckSize];
-    List<List <Card>> board = new ArrayList<>();
-    Texture cardTileSet = new Texture("modern_13x4x560x780.png");
+    List<List <Card>> board = new ArrayList<>(); 
+    Texture cardTileSet = new Texture("classic_13x4x560x780.png");
     public void print() {
         for (int i = 0; i < maxColLength; ++i) {
             for (int b = 0; b <  boardColumns; ++b) {
@@ -44,8 +43,8 @@ public class Deck {
             deck[i] = deck[j];
             deck[j] = temp;
         }
-        x = 10.0F;
-		float startY = camera.viewportHeight - 30 - cardHeight * 2;
+        x = 60.0F;
+		float startY = camera.viewportHeight - 60 - cardHeight * 2;
 		y = startY;
         for (int i = 0; i < deck.length; ++i) {
             if (i <boardColumns) {
