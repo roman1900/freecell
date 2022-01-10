@@ -17,11 +17,20 @@ public class Deck {
     private final Integer boardColumns = 8;
     private float y = 0;
     private float x = 10.0F;
+    private Integer maxColLength = 0;
 
     Card[] deck = new Card[deckSize];
     List<List <Card>> board = new ArrayList<>();
     Texture cardTileSet = new Texture("modern_13x4x560x780.png");
-
+    public void print() {
+        for (int i = 0; i < maxColLength; ++i) {
+            for (int b = 0; b <  boardColumns; ++b) {
+                if (board.get(b).size() > i)
+                    System.out.printf("%3d.%d",board.get(b).get(i).faceValue,board.get(b).get(i).suit);
+            }
+            System.out.println();
+        }
+    }
     public void Deal(OrthographicCamera camera) {
         Random r = new Random();
         for (int i = deckSize-1; i > 0; i--) {
@@ -42,6 +51,7 @@ public class Deck {
                 board.add(new ArrayList<Card>());
             }
             board.get(i % boardColumns).add(deck[i]);
+            if (board.get( i % boardColumns).size() > maxColLength) maxColLength++;
         }
         for(int row = 0; row < boardColumns; ++row) {
             board.get(row).forEach(card -> {
