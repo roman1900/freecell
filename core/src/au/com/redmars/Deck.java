@@ -3,6 +3,7 @@ package au.com.redmars;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Random;
 
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -59,13 +60,23 @@ public class Deck {
                 y = y - 160;
             });
             List<Card> col = board.get(row);
-            Iterator<Card> iterator = col.iterator();
-            while (iterator.hasNext()) {
-                Card c = iterator.next();
-                if (!iterator.hasNext()) {
+            ListIterator<Card> iterator = col.listIterator(col.size());
+            Card topCard = new Card();
+            Boolean endOfList = true;
+            while (iterator.hasPrevious()) {
+                
+                Card c = iterator.previous();
+                
+                if (endOfList) { //The last card can always be grabbed
+                    c.canGrab = true;
+                    c.hitbox = new Rectangle(c.image.getX(), c.image.getY(), cardWidth, cardHeight);
+                    endOfList = false;
+                } 
+                else if (topCard.canGrab && c.isChained(topCard)) {
                     c.canGrab = true;
                     c.hitbox = new Rectangle(c.image.getX(), c.image.getY(), cardWidth, cardHeight);
                 }
+                topCard = c; 
             }
             x = x + cardWidth + 10;
             y = startY;
