@@ -1,5 +1,6 @@
 package au.com.redmars;
 
+import java.util.Arrays;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
@@ -7,6 +8,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 public class Freecell extends ApplicationAdapter {
@@ -34,15 +36,16 @@ public class Freecell extends ApplicationAdapter {
 		shapeRenderer.setProjectionMatrix(camera.combined);
 		batch.begin();
 		
-		batch.disableBlending();	
-		for (Card c: d.deck) {
-		 	c.image.draw(batch);
-		}
+		batch.disableBlending();
+		d.board.forEach(column -> column.forEach(card -> card.image.draw(batch)));
 		if(Gdx.input.isTouched()) {
 			batch.end();
 			shapeRenderer.begin(ShapeType.Filled);
 			shapeRenderer.setColor(Color.RED);
-			shapeRenderer.rect(0,0,50,50);
+			Vector3 mouse = new Vector3(Gdx.input.getX(),Gdx.input.getY(),0);
+			camera.unproject(mouse);
+			Arrays.asList(d.deck).stream().filter(c -> c.canGrab).forEach(c -> {if (c.hitbox.contains(mouse.x,mouse.y)) shapeRenderer.setColor(Color.GREEN);});
+			shapeRenderer.rect(mouse.x,mouse.y,50,50);
 			shapeRenderer.end();
 			batch.begin();
 		}
@@ -53,5 +56,6 @@ public class Freecell extends ApplicationAdapter {
 	public void dispose () {
 		batch.dispose();
 		d.cardTileSet.dispose();	
+		shapeRenderer.dispose();
 	}
 }
