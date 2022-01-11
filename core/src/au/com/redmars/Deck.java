@@ -20,6 +20,7 @@ public class Deck {
     private float x = 0;
     private Integer maxColLength = 0;
 
+    Card dragging;
     Card[] deck = new Card[deckSize];
     List<List <Card>> board = new ArrayList<>(); 
     Texture cardTileSet = new Texture("classic_13x4x560x780.png");
@@ -41,6 +42,9 @@ public class Deck {
     public int getCardWidth() {
         return cardWidth;
     }
+    public boolean isLastCard(Card c) {
+        return board.get(c.row).contains(c) && board.get(c.row).indexOf(c) == board.get(c.row).size() - 1;
+    }
     public void Deal(OrthographicCamera camera) {
         Random r = new Random();
         for (int i = deckSize-1; i > 0; i--) {
@@ -61,6 +65,7 @@ public class Deck {
                 board.add(new ArrayList<Card>());
             }
             board.get(i % boardColumns).add(deck[i]);
+            deck[i].row = i % boardColumns;
             if (board.get( i % boardColumns).size() > maxColLength) maxColLength++;
         }
         for(int row = 0; row < boardColumns; ++row) {
