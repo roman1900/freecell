@@ -10,8 +10,33 @@ public class Card {
     Sprite image;
     boolean canGrab;
     Rectangle hitbox; 
+    boolean isFreeCell;
+    Integer row;
     public boolean isChained(Card card) {
         return faceValue - card.faceValue == 1 && colour != card.colour;
+    }
+    public boolean canDropHere(Card card) {
+        return card.isFreeCell || (card.faceValue - faceValue == 1 && colour != card.colour);
+    }
+    private String suitString() {
+        switch (suit) {
+            case 0:
+                return "Clubs";
+            case 1:
+                return "Diamonds";
+            case 2:
+                return "Hearts";
+            case 3:
+                return "Spades";
+            default:
+                return "Dunno";
+        }
+    }
+    private String cardColour() {
+        return colour == 0 ? "Black" : "Red";
+    }
+    public String toString() {
+        return String.format("Value:%2d Colour: %s Suit: %s Row: %d", faceValue, cardColour(), suitString(), row);
     }
     Card(Integer faceValue, Integer suit,Sprite image) {
         this.faceValue = faceValue;
@@ -32,8 +57,10 @@ public class Card {
         }
         this.image = image;
         this.canGrab = false;
+        this.isFreeCell = false;
     }
     Card() {
         canGrab = false;
+        isFreeCell = true;
     }
 }
