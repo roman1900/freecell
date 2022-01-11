@@ -69,7 +69,7 @@ public class Freecell extends ApplicationAdapter {
 		drawCells();
 		batch.begin();
 		batch.disableBlending();
-		d.board.forEach(column -> column.forEach(card -> card.image.draw(batch)));
+		d.board.forEach(column -> column.forEach(card -> {if (!Objects.isNull(card.image)) card.image.draw(batch);}));
 		batch.end();
 		if(Gdx.input.justTouched()) {
 			shapeRenderer.begin(ShapeType.Filled);
@@ -97,7 +97,6 @@ public class Freecell extends ApplicationAdapter {
 			}
 			Vector3 mouse = new Vector3(Gdx.input.getX(),Gdx.input.getY(),0);
 			camera.unproject(mouse);
-			//Arrays.asList(d.deck).stream().filter(c -> c.canGrab).forEach(c -> {if (c.hitbox.contains(mouse.x,mouse.y)) shapeRenderer.setColor(Color.GREEN);});
 			shapeRenderer.rect(mouse.x-25,mouse.y-25,50,50);
 			shapeRenderer.end();
 			
@@ -110,7 +109,7 @@ public class Freecell extends ApplicationAdapter {
 					.filter(c -> c != d.dragging && d.isLastCard(c) && d.dragging.canDropHere(c))
 					.forEach(c -> {if (c.hitbox.contains(mouse.x,mouse.y)) {
 						//TODO: Move Card from one board row to another
-						System.out.println("Can drop: "+d.dragging.toString()+" here:"+c.toString());
+						System.out.println("Can drop: "+d.dragging.toString()+" here: "+c.toString());
 					}
 					});
 				System.out.println("Stopped dragging: "+d.dragging.toString());

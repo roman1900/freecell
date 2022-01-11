@@ -36,7 +36,8 @@ public class Card {
         return colour == 0 ? "Black" : "Red";
     }
     public String toString() {
-        return String.format("Value:%2d Colour: %s Suit: %s Row: %d", faceValue, cardColour(), suitString(), row);
+        return isFreeCell ? String.format("FreeCell %d",row) :
+        String.format("Value:%2d Colour: %s Suit: %s Row: %d", faceValue, cardColour(), suitString(), row);
     }
     Card(Integer faceValue, Integer suit,Sprite image) {
         this.faceValue = faceValue;
