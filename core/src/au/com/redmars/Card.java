@@ -11,7 +11,7 @@ public class Card {
     boolean canGrab;
     Rectangle hitbox; 
     boolean isFreeCell;
-    Integer row;
+    Integer col;
     public boolean isChained(Card card) {
         return faceValue - card.faceValue == 1 && colour != card.colour;
     }
@@ -36,8 +36,8 @@ public class Card {
         return colour == 0 ? "Black" : "Red";
     }
     public String toString() {
-        return isFreeCell ? String.format("FreeCell %d",row) :
-        String.format("Value:%2d Colour: %s Suit: %s Row: %d", faceValue, cardColour(), suitString(), row);
+        return isFreeCell ? String.format("FreeCell %d",col) :
+        String.format("Value:%2d Colour: %s Suit: %s Row: %d", faceValue, cardColour(), suitString(), col);
     }
     Card(Integer faceValue, Integer suit,Sprite image) {
         this.faceValue = faceValue;

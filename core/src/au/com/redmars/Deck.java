@@ -52,11 +52,39 @@ public class Deck {
         return cardWidth;
     }
 
+
+    public int countFreeCells() {
+        int result = 0;
+        for (int i = boardColumns; i < boardColumns + freeCells; ++i) {
+            result = board.get(i).isEmpty() || board.get(i).get(0).isFreeCell ? result + 1 : result;
+        }
+        return result;
+    }
+    public int countEmptyColumns() {
+        int result = 0;
+        for (int i = 0; i < boardColumns; ++i) {
+            result = board.get(i).isEmpty() ? result + 1 : result ;
+        }
+        return result;
+    }
+    // See : https://boardgames.stackexchange.com/questions/45155/freecell-how-many-cards-can-be-moved-at-once
+    // For formula for spacew required to move chains
+    public boolean canMoveChain(Card card) {
+        Integer chainLength = board.get(card.col).size() - board.get(card.col).indexOf(card);
+        if (countEmptyColumns() == 0) {
+            return countFreeCells()+1 >= chainLength ? true : false;
+        }
+        else {
+            return ((2^countEmptyColumns())*(countFreeCells()+1) >= chainLength) ? true : false;
+        }
+    }
+
     public boolean isLastCard(Card c) {
-        return board.get(c.row).contains(c) && board.get(c.row).indexOf(c) == board.get(c.row).size() - 1;
+        return board.get(c.col).contains(c) && board.get(c.col).indexOf(c) == board.get(c.col).size() - 1;
     }
 
     public void Deal(OrthographicCamera camera) {
+        board.clear();
         Random r = new Random();
         for (int i = deckSize - 1; i > 0; i--) {
 
@@ -76,7 +104,7 @@ public class Deck {
                 board.add(new ArrayList<Card>());
             }
             board.get(i % boardColumns).add(deck[i]);
-            deck[i].row = i % boardColumns;
+            deck[i].col = i % boardColumns;
             if (board.get(i % boardColumns).size() > maxColLength)
                 maxColLength++;
         }
@@ -110,7 +138,7 @@ public class Deck {
             deck[c] = new Card();
             board.add(new ArrayList<Card>());
             board.get(boardColumns+c-deckSize).add(deck[c]);
-            deck[c].row = boardColumns+c-deckSize;
+            deck[c].col = boardColumns+c-deckSize;
         }
         for (int c = deckSize; c < deckSize + 4; ++c) {
             deck[c].hitbox = new Rectangle(

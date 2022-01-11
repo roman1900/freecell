@@ -5,6 +5,7 @@ import java.util.Objects;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -71,6 +72,9 @@ public class Freecell extends ApplicationAdapter {
 		batch.disableBlending();
 		d.board.forEach(column -> column.forEach(card -> {if (!Objects.isNull(card.image)) card.image.draw(batch);}));
 		batch.end();
+		if(Gdx.input.isKeyPressed(Keys.D)){
+			d.Deal(camera);
+		}
 		if(Gdx.input.justTouched()) {
 			shapeRenderer.begin(ShapeType.Filled);
 			shapeRenderer.setColor(Color.RED);
@@ -106,7 +110,7 @@ public class Freecell extends ApplicationAdapter {
 			camera.unproject(mouse);
 			if (!Objects.isNull(d.dragging)) {
 				Arrays.asList(d.deck).stream()
-					.filter(c -> c != d.dragging && d.isLastCard(c) && d.dragging.canDropHere(c))
+					.filter(c -> c != d.dragging && d.isLastCard(c) && d.dragging.canDropHere(c) && d.canMoveChain(d.dragging))
 					.forEach(c -> {if (c.hitbox.contains(mouse.x,mouse.y)) {
 						//TODO: Move Card from one board row to another
 						System.out.println("Can drop: "+d.dragging.toString()+" here: "+c.toString());
