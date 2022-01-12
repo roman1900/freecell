@@ -29,14 +29,14 @@ public class Deck {
 
     public void print() {
         for (int fc = boardColumns; fc < boardColumns + freeCells; ++fc) {
-            System.out.printf("%3d.%d", board.get(fc).get(0).isFreeCell ? -1 : board.get(fc).get(0).faceValue,
-                    board.get(fc).get(0).isFreeCell ? -1 : board.get(fc).get(0).suit);
+            System.out.printf("%3d.%d", nboard.get(fc).cards.isEmpty() ? 0 : nboard.get(fc).cards.get(0).faceValue,
+            nboard.get(fc).cards.isEmpty() ? 0 : nboard.get(fc).cards.get(0).suit);
         }
         System.out.println();
         for (int i = 0; i < maxColLength; ++i) {
             for (int b = 0; b < boardColumns; ++b) {
-                if (board.get(b).size() > i)
-                    System.out.printf("%3d.%d", board.get(b).get(i).faceValue, board.get(b).get(i).suit);
+                if (nboard.get(b).cards.size() > i)
+                    System.out.printf("%3d.%d", nboard.get(b).cards.get(i).faceValue, nboard.get(b).cards.get(i).suit);
             }
             System.out.println();
         }
@@ -57,7 +57,7 @@ public class Deck {
     public int countFreeCells() {  
         int result = 0;
         for (int i = boardColumns; i < boardColumns + freeCells; ++i) {
-            result = board.get(i).isEmpty() || board.get(i).get(0).isFreeCell ? result + 1 : result;
+            result = board.get(i).isEmpty() ? result + 1 : result;
         }
         return result;
     }

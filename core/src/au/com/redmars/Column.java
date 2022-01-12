@@ -7,6 +7,12 @@ import java.util.Optional;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 
+//This Class represents a column on the Solitaire Board
+//The Column may be on:
+//	the playing area 0 - 7
+//	the Free Cells 8 - 11
+//  the Home Cells 12 - 15
+
 public class Column {
 	public Integer index;
 	public Integer maxCards;
