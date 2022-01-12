@@ -24,46 +24,42 @@ public class Freecell extends ApplicationAdapter {
 	ShapeRenderer shapeRenderer;
 	Viewport viewport;
 	Vector3 currentMouse;
+	Color cursorColor;
 
 	@Override
-	public void create () {
+	public void create() {
 		batch = new SpriteBatch();
-		d = new Deck();	
+		d = new Deck();
 		float width = (d.getCardWidth() * 8) + (d.getCardMargin() * 11);
-		camera = new OrthographicCamera(width,width * .6F); 
+		camera = new OrthographicCamera(width, width * .6F);
 		camera.position.set(camera.viewportWidth / 2, camera.viewportHeight / 2, 0);
 		viewport = new StretchViewport(camera.viewportWidth, camera.viewportHeight, camera);
 		d.Deal(camera);
 		shapeRenderer = new ShapeRenderer();
 	}
-	
-	@Override 
-	public void resize (int width, int height) {
+
+	@Override
+	public void resize(int width, int height) {
 		viewport.update(width, height);
-		System.out.printf("new size: %d x %d\n",width,height);
+		System.out.printf("new size: %d x %d\n", width, height);
 	}
 
-	public void drawCells () {
+	public void drawCells() {
 		shapeRenderer.begin(ShapeType.Line);
 		shapeRenderer.setColor(Color.RED);
 		for (int fc = 0; fc < 4; ++fc) {
-			shapeRenderer.rect((d.getCardMargin() * 2) + (560 * fc) + (d.getCardMargin() * .5F * fc)
-					,camera.viewportHeight - d.getCardMargin() - d.getCardHeight()
-					,d.getCardWidth()
-					,d.getCardHeight());
+			shapeRenderer.rect((d.getCardMargin() * 2) + (560 * fc) + (d.getCardMargin() * .5F * fc),
+					camera.viewportHeight - d.getCardMargin() - d.getCardHeight(), d.getCardWidth(), d.getCardHeight());
 		}
 		for (int fc = 4; fc < 8; ++fc) {
-			shapeRenderer.rect((d.getCardMargin() * 5.5F) + (560 * fc) + (d.getCardMargin() * .5F * fc)
-					,camera.viewportHeight - d.getCardMargin() - d.getCardHeight()
-					,d.getCardWidth()
-					,d.getCardHeight());
+			shapeRenderer.rect((d.getCardMargin() * 5.5F) + (560 * fc) + (d.getCardMargin() * .5F * fc),
+					camera.viewportHeight - d.getCardMargin() - d.getCardHeight(), d.getCardWidth(), d.getCardHeight());
 		}
 		shapeRenderer.end();
 	}
 
 	@Override
-	public void render () {
-		
+	public void render() {
 		ScreenUtils.clear(0.3F, 1, 0.3F, 1);
 		camera.update();
 		batch.setProjectionMatrix(camera.combined);
@@ -71,77 +67,71 @@ public class Freecell extends ApplicationAdapter {
 		drawCells();
 		batch.begin();
 		batch.disableBlending();
-		d.board.forEach(column -> column.forEach(card -> {if (!Objects.isNull(card.image)) card.image.draw(batch);}));
+		d.nboard.forEach(column -> column.cards.forEach(card -> {
+			card.image.draw(batch);
+		}));
 		batch.end();
-		if(Gdx.input.isKeyJustPressed(Keys.D)){
+		if (Gdx.input.isKeyJustPressed(Keys.D)) {
 			d.Deal(camera);
 		}
-		if(Gdx.input.isTouched()) {
+		if (Gdx.input.isTouched()) {
 			shapeRenderer.begin(ShapeType.Filled);
-			shapeRenderer.setColor(Color.RED);
-			currentMouse = new Vector3(Gdx.input.getX(),Gdx.input.getY(),0);
+			currentMouse = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0);
 			camera.unproject(currentMouse);
-			Optional<Board> column = d.nboard.stream().filter(b -> b.hitbox.contains(currentMouse.x,currentMouse.y)).findFirst();
-			column.ifPresent(c -> {
-				if (Gdx.input.justTouched()) {
-					Optional<Card> dragging = c.touchingCard(currentMouse);
-					dragging.ifPresent(d -> System.out.printf("Trying to Grab: %s\n", dragging.toString()));
-				}
-				shapeRenderer.setColor(Color.PURPLE);
-			});
-			// ) {
-			// 	shapeRenderer.setColor(Color.PURPLE);
-			// 	System.out.println(column.);
-			// }
-
-			// Arrays.asList(d.deck).stream().filter(c -> c.canGrab).forEach(c -> {
-			// 	if (c.hitbox.contains(currentMouse.x,currentMouse.y)) {
-			// 		shapeRenderer.setColor(Color.GREEN);
-			// 		d.dragging = c;
-			// 		System.out.println("Dragging: "+c.toString());
-			// 	}
-			// 	});
-			shapeRenderer.rect(currentMouse.x-25,currentMouse.y-25,50,50);
+			if (Gdx.input.justTouched()) {
+				cursorColor = Color.RED;
+				Optional<Board> column = d.nboard.stream()
+						.filter(b -> b.hitbox.contains(currentMouse.x, currentMouse.y)).findFirst();
+				column.ifPresent(c -> {
+					if (Gdx.input.justTouched()) {
+						c.touchingCard(currentMouse).ifPresent(f -> {
+							if (f.canGrab) {
+								cursorColor = Color.PURPLE;
+								System.out.printf("Grabbing: %s\n", f.toString());
+								d.dragging = f;
+							}
+						});
+					}
+				});
+			}
+			shapeRenderer.setColor(cursorColor);
+			shapeRenderer.rect(currentMouse.x - 25, currentMouse.y - 25, 50, 50);
 			shapeRenderer.end();
 		}
-		// else if(Gdx.input.isTouched()) {
-		// 	shapeRenderer.begin(ShapeType.Filled);
-		// 	if (!Objects.isNull(d.dragging)) {
-		// 		//TODO: Implement Card dragging movement
-		// 		shapeRenderer.setColor(Color.GREEN);
-		// 	}
-		// 	else {
-		// 		shapeRenderer.setColor(Color.RED);
-		// 	}
-		// 	Vector3 mouse = new Vector3(Gdx.input.getX(),Gdx.input.getY(),0);
-		// 	camera.unproject(mouse);
-		// 	shapeRenderer.rect(mouse.x-25,mouse.y-25,50,50);
-		// 	shapeRenderer.end();
-			
-		// }
 		else {
-			Vector3 mouse = new Vector3(Gdx.input.getX(),Gdx.input.getY(),0);
+			Vector3 mouse = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0);
 			camera.unproject(mouse);
+			if (!Objects.isNull(d.dragging)) {
+				Optional<Board> destination = d.nboard.stream()
+						.filter(b -> b.hitbox.contains(currentMouse.x, currentMouse.y)).findFirst();
+				destination.ifPresent(dst -> {
+					if (dst.cards.isEmpty() || d.dragging.canDropHere(dst.cards.get(dst.cards.size()-1))) {
+						//TODO: Check if enough space exists to move the chain of cards
+					}
+				});
+			}
 			// if (!Objects.isNull(d.dragging)) {
-			// 	Arrays.asList(d.deck).stream()
-			// 		.filter(c -> c != d.dragging && d.isLastCard(c) && d.dragging.canDropHere(c) && d.canMoveChain(d.dragging))
-			// 		.forEach(c -> {if (c.hitbox.contains(mouse.x,mouse.y)) {
-			// 			//TODO: Move Card from one board row to another
-			// 			System.out.println("Can drop: "+d.dragging.toString()+" here: "+c.toString());
-			// 			d.moveChain(d.dragging, c);
-			// 		}
-			// 		});
-			// 	System.out.println("Stopped dragging: "+d.dragging.toString());
-			// 	d.dragging = null;
+			// Arrays.asList(d.deck).stream()
+			// .filter(c -> c != d.dragging && d.isLastCard(c) && d.dragging.canDropHere(c)
+			// && d.canMoveChain(d.dragging))
+			// .forEach(c -> {if (c.hitbox.contains(mouse.x,mouse.y)) {
+			// //TODO: Move Card from one board row to another
+			// System.out.println("Can drop: "+d.dragging.toString()+" here:
+			// "+c.toString());
+			// d.moveChain(d.dragging, c);
+			// }
+			// });
+			// System.out.println("Stopped dragging: "+d.dragging.toString());
+			// d.dragging = null;
 			// }
 		}
-		
+
 	}
-	
+
 	@Override
-	public void dispose () {
+	public void dispose() {
 		batch.dispose();
-		d.cardTileSet.dispose();	
+		d.cardTileSet.dispose();
 		shapeRenderer.dispose();
 	}
 }

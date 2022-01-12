@@ -54,7 +54,7 @@ public class Deck {
         return cardWidth;
     }
 
-    public int countFreeCells() {
+    public int countFreeCells() {  
         int result = 0;
         for (int i = boardColumns; i < boardColumns + freeCells; ++i) {
             result = board.get(i).isEmpty() || board.get(i).get(0).isFreeCell ? result + 1 : result;
@@ -62,7 +62,7 @@ public class Deck {
         return result;
     }
 
-    public int countEmptyColumns() {
+    public int countEmptyColumns() { //TODO: Exclude the destination column
         int result = 0;
         for (int i = 0; i < boardColumns; ++i) {
             result = board.get(i).isEmpty() ? result + 1 : result;
