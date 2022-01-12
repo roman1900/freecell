@@ -23,7 +23,7 @@ public class Deck {
 
     Card dragging;
     Card[] deck = new Card[deckSize + 4];
-    List<Board> nboard = new ArrayList<>(); 
+    List<Column> nboard = new ArrayList<>(); 
     List<List<Card>> board = new ArrayList<>();
     Texture cardTileSet = new Texture("classic_13x4x560x780.png");
 
@@ -128,13 +128,13 @@ public class Deck {
         float y = camera.viewportHeight - cardMargin * 2 - cardHeight;
         float x = cardMargin * 2;
         for (int i = 0; i < boardColumns; ++i) { //8 playing columns
-            nboard.add(new Board(i,52,new Rectangle(x,0,cardWidth,y)));
+            nboard.add(new Column(i,52,new Rectangle(x,0,cardWidth,y)));
             x = x + cardWidth + cardMargin;
         }
         for (int i = 0; i < freeCells; ++i) { //4 Freecell columns
             Rectangle hitbox = new Rectangle((cardMargin * 2) + (560 * i) + (cardMargin * .5F * i),
                     camera.viewportHeight - cardMargin - cardHeight, cardWidth, cardHeight);
-            nboard.add(new Board(i+boardColumns,1,hitbox));
+            nboard.add(new Column(i+boardColumns,1,hitbox));
         }
 
     }

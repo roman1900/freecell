@@ -7,7 +7,7 @@ import java.util.Optional;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 
-public class Board {
+public class Column {
 	public Integer index;
 	public Integer maxCards;
 	public final float cardGap = 160;
@@ -34,7 +34,7 @@ public class Board {
 		return Optional.empty();
 	}
 
-	Board(Integer index, Integer maxCards, Rectangle hitbox) {
+	Column(Integer index, Integer maxCards, Rectangle hitbox) {
 		this.index = index;
 		this.maxCards = maxCards;
 		this.hitbox = hitbox;

@@ -74,13 +74,16 @@ public class Freecell extends ApplicationAdapter {
 		if (Gdx.input.isKeyJustPressed(Keys.D)) {
 			d.Deal(camera);
 		}
+		if (Gdx.input.isKeyJustPressed(Keys.Q)) {
+			Gdx.app.exit();
+		}
 		if (Gdx.input.isTouched()) {
 			shapeRenderer.begin(ShapeType.Filled);
 			currentMouse = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0);
 			camera.unproject(currentMouse);
-			if (Gdx.input.justTouched()) {
+			if (Gdx.input.justTouched()) { //Trying to Grab something
 				cursorColor = Color.RED;
-				Optional<Board> column = d.nboard.stream()
+				Optional<Column> column = d.nboard.stream()
 						.filter(b -> b.hitbox.contains(currentMouse.x, currentMouse.y)).findFirst();
 				column.ifPresent(c -> {
 					if (Gdx.input.justTouched()) {
@@ -102,13 +105,15 @@ public class Freecell extends ApplicationAdapter {
 			Vector3 mouse = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0);
 			camera.unproject(mouse);
 			if (!Objects.isNull(d.dragging)) {
-				Optional<Board> destination = d.nboard.stream()
+				Optional<Column> destination = d.nboard.stream()
 						.filter(b -> b.hitbox.contains(currentMouse.x, currentMouse.y)).findFirst();
 				destination.ifPresent(dst -> {
 					if (dst.cards.isEmpty() || d.dragging.canDropHere(dst.cards.get(dst.cards.size()-1))) {
 						//TODO: Check if enough space exists to move the chain of cards
+						System.out.printf("Dropping onto column: %d\n", dst.index);
 					}
 				});
+				d.dragging = null;
 			}
 			// if (!Objects.isNull(d.dragging)) {
 			// Arrays.asList(d.deck).stream()
