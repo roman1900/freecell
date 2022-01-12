@@ -23,12 +23,14 @@ public class Deck {
 
     Card dragging;
     Card[] deck = new Card[deckSize + 4];
+    List<Board> nboard = new ArrayList<>(); 
     List<List<Card>> board = new ArrayList<>();
     Texture cardTileSet = new Texture("classic_13x4x560x780.png");
 
     public void print() {
         for (int fc = boardColumns; fc < boardColumns + freeCells; ++fc) {
-            System.out.printf("%3d.%d", board.get(fc).get(0).isFreeCell ? -1 : board.get(fc).get(0).faceValue, board.get(fc).get(0).isFreeCell ? -1 :board.get(fc).get(0).suit);
+            System.out.printf("%3d.%d", board.get(fc).get(0).isFreeCell ? -1 : board.get(fc).get(0).faceValue,
+                    board.get(fc).get(0).isFreeCell ? -1 : board.get(fc).get(0).suit);
         }
         System.out.println();
         for (int i = 0; i < maxColLength; ++i) {
@@ -52,7 +54,6 @@ public class Deck {
         return cardWidth;
     }
 
-
     public int countFreeCells() {
         int result = 0;
         for (int i = boardColumns; i < boardColumns + freeCells; ++i) {
@@ -60,22 +61,24 @@ public class Deck {
         }
         return result;
     }
+
     public int countEmptyColumns() {
         int result = 0;
         for (int i = 0; i < boardColumns; ++i) {
-            result = board.get(i).isEmpty() ? result + 1 : result ;
+            result = board.get(i).isEmpty() ? result + 1 : result;
         }
         return result;
     }
-    // See : https://boardgames.stackexchange.com/questions/45155/freecell-how-many-cards-can-be-moved-at-once
+
+    // See :
+    // https://boardgames.stackexchange.com/questions/45155/freecell-how-many-cards-can-be-moved-at-once
     // For formula for spacew required to move chains
     public boolean canMoveChain(Card card) {
         Integer chainLength = board.get(card.col).size() - board.get(card.col).indexOf(card);
         if (countEmptyColumns() == 0) {
-            return countFreeCells()+1 >= chainLength ? true : false;
-        }
-        else {
-            return ((2^countEmptyColumns())*(countFreeCells()+1) >= chainLength) ? true : false;
+            return countFreeCells() + 1 >= chainLength ? true : false;
+        } else {
+            return ((2 ^ countEmptyColumns()) * (countFreeCells() + 1) >= chainLength) ? true : false;
         }
     }
 
@@ -83,9 +86,66 @@ public class Deck {
         return board.get(c.col).contains(c) && board.get(c.col).indexOf(c) == board.get(c.col).size() - 1;
     }
 
+    public void moveChain(Card src, Card dst) {
+        
+        List<Card> srcCol = board.get(src.col);
+        List<Card> dstCol = board.get(dst.col);
+        List<Card> movingCards = srcCol.subList(srcCol.indexOf(src), srcCol.size());
+        movingCards.forEach(c -> { 
+            c.col = dst.col; 
+            c.image.setX(dst.image.getX());
+            c.image.setY(dst.image.getY() - 160 - (src.image.getY() - c.image.getY()) );
+        });
+        dstCol.addAll(movingCards);
+        srcCol.removeAll(movingCards);
+        refreshColumn(dstCol);
+        refreshColumn(srcCol);
+    }
+    public void refreshColumn(List<Card> col) {
+        ListIterator<Card> iterator = col.listIterator(col.size());
+        Card topCard = new Card();
+        Boolean endOfList = true;
+        while (iterator.hasPrevious()) {
+
+            Card c = iterator.previous();
+
+            if (endOfList) { // The last card can always be grabbed
+                c.canGrab = true;
+                c.hitbox = new Rectangle(c.image.getX(), c.image.getY(), cardWidth, cardHeight);
+                endOfList = false;
+            } else if (topCard.canGrab && c.isChained(topCard)) {
+                c.canGrab = true;
+                c.hitbox = new Rectangle(c.image.getX(), c.image.getY(), cardWidth, cardHeight);
+            } else {
+                c.canGrab = false;
+                c.hitbox = null;
+            }
+            topCard = c;
+        }
+    }
+    public void setupBoard(OrthographicCamera camera) {
+        nboard.clear();
+        float y = camera.viewportHeight - cardMargin * 2 - cardHeight;
+        float x = cardMargin * 2;
+        for (int i = 0; i < boardColumns; ++i) { //8 playing columns
+            nboard.add(new Board(i,52,new Rectangle(x,0,cardWidth,y)));
+            x = x + cardWidth + cardMargin;
+        }
+        for (int i = 0; i < freeCells; ++i) { //4 Freecell columns
+            Rectangle hitbox = new Rectangle((cardMargin * 2) + (560 * i) + (cardMargin * .5F * i),
+                    camera.viewportHeight - cardMargin - cardHeight, cardWidth, cardHeight);
+            nboard.add(new Board(i+boardColumns,1,hitbox));
+        }
+
+    }
     public void Deal(OrthographicCamera camera) {
         board.clear();
-        Random r = new Random();
+        setupBoard(camera);
+        Random seeder = new Random();
+        Long seed = seeder.nextLong();
+        System.out.printf("Current seed: %d\n",seed);
+        Random r = new Random(seed);
+        
         for (int i = deckSize - 1; i > 0; i--) {
 
             // Pick a random index from 0 to i
@@ -103,42 +163,35 @@ public class Deck {
             if (i < boardColumns) {
                 board.add(new ArrayList<Card>());
             }
+            nboard.get(i % boardColumns).cards.add(deck[i]);
             board.get(i % boardColumns).add(deck[i]);
             deck[i].col = i % boardColumns;
             if (board.get(i % boardColumns).size() > maxColLength)
                 maxColLength++;
         }
-        for (int row = 0; row < boardColumns; ++row) {
-            board.get(row).forEach(card -> {
+        ///////////
+        nboard.forEach(b -> {
+            b.cards.forEach(c -> c.image.setPosition(b.hitbox.x, y));
+            y = y - 160;
+            refreshColumn(b.cards);
+            if (!b.cards.isEmpty()) b.populateHitBoxes();
+        });
+        ///////////
+        y = startY;
+        for (int col = 0; col < boardColumns; ++col) {
+            board.get(col).forEach(card -> {
                 card.image.setPosition(x, y);
                 y = y - 160;
             });
-            List<Card> col = board.get(row);
-            ListIterator<Card> iterator = col.listIterator(col.size());
-            Card topCard = new Card();
-            Boolean endOfList = true;
-            while (iterator.hasPrevious()) {
-
-                Card c = iterator.previous();
-
-                if (endOfList) { // The last card can always be grabbed
-                    c.canGrab = true;
-                    c.hitbox = new Rectangle(c.image.getX(), c.image.getY(), cardWidth, cardHeight);
-                    endOfList = false;
-                } else if (topCard.canGrab && c.isChained(topCard)) {
-                    c.canGrab = true;
-                    c.hitbox = new Rectangle(c.image.getX(), c.image.getY(), cardWidth, cardHeight);
-                }
-                topCard = c;
-            }
+            refreshColumn(board.get(col));
             x = x + cardWidth + cardMargin;
             y = startY;
         }
         for (int c = deckSize; c < deckSize + 4; ++c) {
             deck[c] = new Card();
             board.add(new ArrayList<Card>());
-            board.get(boardColumns+c-deckSize).add(deck[c]);
-            deck[c].col = boardColumns+c-deckSize;
+            board.get(boardColumns + c - deckSize).add(deck[c]);
+            deck[c].col = boardColumns + c - deckSize;
         }
         for (int c = deckSize; c < deckSize + 4; ++c) {
             deck[c].hitbox = new Rectangle(

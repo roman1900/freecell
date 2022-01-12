@@ -2,6 +2,7 @@ package au.com.redmars;
 
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Optional;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
@@ -72,53 +73,67 @@ public class Freecell extends ApplicationAdapter {
 		batch.disableBlending();
 		d.board.forEach(column -> column.forEach(card -> {if (!Objects.isNull(card.image)) card.image.draw(batch);}));
 		batch.end();
-		if(Gdx.input.isKeyPressed(Keys.D)){
+		if(Gdx.input.isKeyJustPressed(Keys.D)){
 			d.Deal(camera);
 		}
-		if(Gdx.input.justTouched()) {
+		if(Gdx.input.isTouched()) {
 			shapeRenderer.begin(ShapeType.Filled);
 			shapeRenderer.setColor(Color.RED);
 			currentMouse = new Vector3(Gdx.input.getX(),Gdx.input.getY(),0);
 			camera.unproject(currentMouse);
-			Arrays.asList(d.deck).stream().filter(c -> c.canGrab).forEach(c -> {
-				if (c.hitbox.contains(currentMouse.x,currentMouse.y)) {
-					shapeRenderer.setColor(Color.GREEN);
-					d.dragging = c;
-					System.out.println("Dragging: "+c.toString());
+			Optional<Board> column = d.nboard.stream().filter(b -> b.hitbox.contains(currentMouse.x,currentMouse.y)).findFirst();
+			column.ifPresent(c -> {
+				if (Gdx.input.justTouched()) {
+					Optional<Card> dragging = c.touchingCard(currentMouse);
+					dragging.ifPresent(d -> System.out.printf("Trying to Grab: %s\n", dragging.toString()));
 				}
-				});
+				shapeRenderer.setColor(Color.PURPLE);
+			});
+			// ) {
+			// 	shapeRenderer.setColor(Color.PURPLE);
+			// 	System.out.println(column.);
+			// }
+
+			// Arrays.asList(d.deck).stream().filter(c -> c.canGrab).forEach(c -> {
+			// 	if (c.hitbox.contains(currentMouse.x,currentMouse.y)) {
+			// 		shapeRenderer.setColor(Color.GREEN);
+			// 		d.dragging = c;
+			// 		System.out.println("Dragging: "+c.toString());
+			// 	}
+			// 	});
 			shapeRenderer.rect(currentMouse.x-25,currentMouse.y-25,50,50);
 			shapeRenderer.end();
 		}
-		else if(Gdx.input.isTouched()) {
-			shapeRenderer.begin(ShapeType.Filled);
-			if (!Objects.isNull(d.dragging)) {
-				//TODO: Implement Card dragging movement
-				shapeRenderer.setColor(Color.GREEN);
-			}
-			else {
-				shapeRenderer.setColor(Color.RED);
-			}
-			Vector3 mouse = new Vector3(Gdx.input.getX(),Gdx.input.getY(),0);
-			camera.unproject(mouse);
-			shapeRenderer.rect(mouse.x-25,mouse.y-25,50,50);
-			shapeRenderer.end();
+		// else if(Gdx.input.isTouched()) {
+		// 	shapeRenderer.begin(ShapeType.Filled);
+		// 	if (!Objects.isNull(d.dragging)) {
+		// 		//TODO: Implement Card dragging movement
+		// 		shapeRenderer.setColor(Color.GREEN);
+		// 	}
+		// 	else {
+		// 		shapeRenderer.setColor(Color.RED);
+		// 	}
+		// 	Vector3 mouse = new Vector3(Gdx.input.getX(),Gdx.input.getY(),0);
+		// 	camera.unproject(mouse);
+		// 	shapeRenderer.rect(mouse.x-25,mouse.y-25,50,50);
+		// 	shapeRenderer.end();
 			
-		}
+		// }
 		else {
 			Vector3 mouse = new Vector3(Gdx.input.getX(),Gdx.input.getY(),0);
 			camera.unproject(mouse);
-			if (!Objects.isNull(d.dragging)) {
-				Arrays.asList(d.deck).stream()
-					.filter(c -> c != d.dragging && d.isLastCard(c) && d.dragging.canDropHere(c) && d.canMoveChain(d.dragging))
-					.forEach(c -> {if (c.hitbox.contains(mouse.x,mouse.y)) {
-						//TODO: Move Card from one board row to another
-						System.out.println("Can drop: "+d.dragging.toString()+" here: "+c.toString());
-					}
-					});
-				System.out.println("Stopped dragging: "+d.dragging.toString());
-				d.dragging = null;
-			}
+			// if (!Objects.isNull(d.dragging)) {
+			// 	Arrays.asList(d.deck).stream()
+			// 		.filter(c -> c != d.dragging && d.isLastCard(c) && d.dragging.canDropHere(c) && d.canMoveChain(d.dragging))
+			// 		.forEach(c -> {if (c.hitbox.contains(mouse.x,mouse.y)) {
+			// 			//TODO: Move Card from one board row to another
+			// 			System.out.println("Can drop: "+d.dragging.toString()+" here: "+c.toString());
+			// 			d.moveChain(d.dragging, c);
+			// 		}
+			// 		});
+			// 	System.out.println("Stopped dragging: "+d.dragging.toString());
+			// 	d.dragging = null;
+			// }
 		}
 		
 	}
