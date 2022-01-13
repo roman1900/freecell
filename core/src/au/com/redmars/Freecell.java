@@ -69,6 +69,11 @@ public class Freecell extends ApplicationAdapter {
 		d.board.forEach(column -> column.cards.forEach(card -> {
 			card.image.draw(batch);
 		}));
+		d.homeCells.forEach(hc -> { 
+			if (!hc.cards.isEmpty()) {
+				hc.cards.get(hc.cards.size()-1).image.draw(batch);
+			}
+		});
 		batch.end();
 		if (Gdx.input.isKeyJustPressed(Keys.D)) {
 			d.Deal(camera);
@@ -107,7 +112,7 @@ public class Freecell extends ApplicationAdapter {
 			if (!Objects.isNull(d.dragging)) {
 				Optional<Column> destination = d.board.stream()
 						.filter(b -> b.hitbox.contains(currentMouse.x, currentMouse.y)).findFirst();
-				destination.ifPresent(dst -> {
+				destination.ifPresentOrElse(dst -> {
 					if (dst.cards.isEmpty() || d.dragging.canDropHere(dst.cards.get(dst.cards.size()-1))) {
 						int chainLength = d.chainLength(d.dragging);
 						if ((chainLength > 1 && dst.maxCards > 1 && d.canMoveChain(dst, chainLength)) || (chainLength == 1 && dst.cards.size() < dst.maxCards) ) {
@@ -115,6 +120,17 @@ public class Freecell extends ApplicationAdapter {
 							d.moveChain(d.dragging, dst);
 						}
 					}
+				}, () -> {
+					Optional<Column> homecell = d.homeCells.stream()
+						.filter(b -> b.hitbox.contains(currentMouse.x, currentMouse.y)).findFirst();
+					homecell.ifPresent(x -> {
+						if (x.index == d.dragging.suit && ((x.cards.isEmpty() && d.dragging.faceValue == 0) || (!x.cards.isEmpty() && x.cards.get(x.cards.size() -1).faceValue == d.dragging.faceValue - 1))) {
+							x.cards.add(d.dragging);
+							d.board.get(d.dragging.col).cards.remove(d.dragging);
+							d.refreshBoard();
+							d.dragging.image.setPosition(x.hitbox.x, x.hitbox.y);
+						}
+					});
 				});
 				d.dragging = null;
 			}

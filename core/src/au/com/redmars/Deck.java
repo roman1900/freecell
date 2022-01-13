@@ -24,6 +24,7 @@ public class Deck {
     Card dragging;
     Card[] deck = new Card[deckSize + 4];
     List<Column> board = new ArrayList<>(); 
+    List<Column> homeCells = new ArrayList<>();
     Texture cardTileSet = new Texture("classic_13x4x560x780.png");
 
     public int getCardMargin() {
@@ -115,6 +116,11 @@ public class Deck {
             Rectangle hitbox = new Rectangle((cardMargin * 2) + (560 * i) + (cardMargin * .5F * i),
                     camera.viewportHeight - cardMargin - cardHeight, cardWidth, cardHeight);
             board.add(new Column(i+boardColumns,1,hitbox));
+        }
+        for (int i = 4; i < 8; ++i) { //4 Home cells
+            Rectangle hitbox = new Rectangle((cardMargin * 5.5F) + (560 * i) + (cardMargin * .5F * i),
+					camera.viewportHeight - cardMargin - cardHeight, cardWidth, cardHeight);
+            homeCells.add(new Column(i - 4,suitSize,hitbox));
         }
 
     }
