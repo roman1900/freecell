@@ -106,7 +106,6 @@ public class Freecell extends ApplicationAdapter {
 			shapeRenderer.end();
 		}
 		else {
-			//FIXME: Bug moving card chain to empty column
 			Vector3 mouse = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0);
 			camera.unproject(mouse);
 			if (!Objects.isNull(d.dragging)) {
@@ -133,6 +132,7 @@ public class Freecell extends ApplicationAdapter {
 					});
 				});
 				d.dragging = null;
+				d.autoComplete();
 			}
 		}
 

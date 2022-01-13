@@ -75,7 +75,32 @@ public class Deck {
         srcCol.cards.removeAll(movingCards);
         refreshBoard();
     }
-
+    public Integer lowestHomeCell() {
+        if (homeCells.stream().filter(c -> c.cards.isEmpty()).findFirst().isPresent()) return 1;
+        return homeCells.stream().min((b,c) -> b.cards.get(b.cards.size() - 1).faceValue - c.cards.get(c.cards.size() - 1).faceValue)
+            .get().cards.stream().map(c -> c.faceValue).max(Integer::compare).get() + 1; 
+    }
+    public Integer nextHomeCellCard(List<Card> cardList) {
+        if (cardList.isEmpty()) return 0;
+        return cardList.get(cardList.size() - 1).faceValue + 1;
+    }
+    private Card lastCard(List<Card> cardList) {
+        return cardList.get(cardList.size() - 1);
+    }
+    public void autoComplete() {
+        board.stream().filter(c -> !c.cards.isEmpty()).forEach(c -> {
+            Card last = lastCard(c.cards);
+            Column hc = homeCells.get(last.suit);
+            System.out.printf("%d lowest home cell\n", lowestHomeCell());
+            if (last.faceValue <= lowestHomeCell() && nextHomeCellCard(hc.cards) == last.faceValue) {
+                hc.cards.add(last);
+				c.cards.remove(last);
+				refreshBoard();
+				last.image.setPosition(hc.hitbox.x, hc.hitbox.y);
+                autoComplete();
+            }
+        });
+    }
     public void refreshBoard() {
         board.forEach(b -> {
             y = startY;
