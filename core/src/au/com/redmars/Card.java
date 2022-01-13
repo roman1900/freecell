@@ -1,7 +1,6 @@
 package au.com.redmars;
 
 import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.badlogic.gdx.math.Rectangle;
 
 public class Card {
     Integer faceValue;
@@ -9,7 +8,6 @@ public class Card {
     Integer suit; //0 - Clubs, 1 - Diamonds, 2 - Hearts, 3 - Spades
     Sprite image;
     boolean canGrab;
-    Rectangle hitbox; 
     Integer col;
     public boolean isChained(Card card) {
         return faceValue - card.faceValue == 1 && colour != card.colour;

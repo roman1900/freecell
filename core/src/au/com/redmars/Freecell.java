@@ -66,7 +66,7 @@ public class Freecell extends ApplicationAdapter {
 		drawCells();
 		batch.begin();
 		batch.disableBlending();
-		d.nboard.forEach(column -> column.cards.forEach(card -> {
+		d.board.forEach(column -> column.cards.forEach(card -> {
 			card.image.draw(batch);
 		}));
 		batch.end();
@@ -82,7 +82,7 @@ public class Freecell extends ApplicationAdapter {
 			camera.unproject(currentMouse);
 			if (Gdx.input.justTouched()) { //Trying to Grab something
 				cursorColor = Color.RED;
-				Optional<Column> column = d.nboard.stream()
+				Optional<Column> column = d.board.stream()
 						.filter(b -> b.hitbox.contains(currentMouse.x, currentMouse.y)).findFirst();
 				column.ifPresent(c -> {
 					if (Gdx.input.justTouched()) {
@@ -101,33 +101,23 @@ public class Freecell extends ApplicationAdapter {
 			shapeRenderer.end();
 		}
 		else {
+			//FIXME: Bug moving card chain to empty column
 			Vector3 mouse = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0);
 			camera.unproject(mouse);
 			if (!Objects.isNull(d.dragging)) {
-				Optional<Column> destination = d.nboard.stream()
+				Optional<Column> destination = d.board.stream()
 						.filter(b -> b.hitbox.contains(currentMouse.x, currentMouse.y)).findFirst();
 				destination.ifPresent(dst -> {
 					if (dst.cards.isEmpty() || d.dragging.canDropHere(dst.cards.get(dst.cards.size()-1))) {
-						//TODO: Check if enough space exists to move the chain of cards
-						System.out.printf("Dropping onto column: %d\n", dst.index);
+						int chainLength = d.chainLength(d.dragging);
+						if ((chainLength > 1 && dst.maxCards > 1 && d.canMoveChain(dst, chainLength)) || (chainLength == 1 && dst.cards.size() < dst.maxCards) ) {
+							System.out.printf("Moving Chain of %d Cards to Column %d starting with Card %s\n", chainLength, dst.index, d.dragging.toString());
+							d.moveChain(d.dragging, dst);
+						}
 					}
 				});
 				d.dragging = null;
 			}
-			// if (!Objects.isNull(d.dragging)) {
-			// Arrays.asList(d.deck).stream()
-			// .filter(c -> c != d.dragging && d.isLastCard(c) && d.dragging.canDropHere(c)
-			// && d.canMoveChain(d.dragging))
-			// .forEach(c -> {if (c.hitbox.contains(mouse.x,mouse.y)) {
-			// //TODO: Move Card from one board row to another
-			// System.out.println("Can drop: "+d.dragging.toString()+" here:
-			// "+c.toString());
-			// d.moveChain(d.dragging, c);
-			// }
-			// });
-			// System.out.println("Stopped dragging: "+d.dragging.toString());
-			// d.dragging = null;
-			// }
 		}
 
 	}
