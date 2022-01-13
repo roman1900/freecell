@@ -44,7 +44,7 @@ public class Deck {
     }
 
     public long countEmptyColumns(Column dst) { 
-        return board.stream().filter(x -> x.maxCards == 1).filter(x -> x.cards.isEmpty()).filter(x -> !x.equals(dst)).count();
+        return board.stream().filter(x -> x.maxCards != 1).filter(x -> x.cards.isEmpty()).filter(x -> !x.equals(dst)).count();
     }
 
     
@@ -60,7 +60,7 @@ public class Deck {
         if (countEmptyColumns(dst) == 0) {
             return countFreeCells() + 1 >= chainLength ? true : false;
         } else {
-            return ((2 ^ countEmptyColumns(dst)) * (countFreeCells() + 1) >= chainLength) ? true : false;
+            return (Math.pow(2.0D , countEmptyColumns(dst)) * (countFreeCells() + 1) >= chainLength) ? true : false;
         }
     }
 
@@ -106,6 +106,7 @@ public class Deck {
     }
     public void setupBoard(OrthographicCamera camera) {
         board.clear();
+        homeCells.clear();
         float y = camera.viewportHeight - cardMargin * 2 - cardHeight;
         float x = cardMargin * 2;
         for (int i = 0; i < boardColumns; ++i) { //8 playing columns
