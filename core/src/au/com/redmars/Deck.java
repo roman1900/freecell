@@ -22,6 +22,7 @@ public class Deck {
     private float y = 0;
 
     Card dragging;
+    Card viewing;
     Card[] deck = new Card[deckSize + 4];
     List<Column> board = new ArrayList<>(); 
     List<Column> homeCells = new ArrayList<>();

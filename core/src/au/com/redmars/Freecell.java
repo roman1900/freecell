@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -85,14 +86,16 @@ public class Freecell extends ApplicationAdapter {
 			shapeRenderer.begin(ShapeType.Filled);
 			currentMouse = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0);
 			camera.unproject(currentMouse);
-			if (Gdx.input.justTouched()) { //Trying to Grab something
+			if (Gdx.input.justTouched()) { //Trying to Grab something or right click to view something
 				cursorColor = Color.RED;
 				Optional<Column> column = d.board.stream()
 						.filter(b -> b.hitbox.contains(currentMouse.x, currentMouse.y)).findFirst();
 				column.ifPresent(c -> {
 					if (Gdx.input.justTouched()) {
 						c.touchingCard(currentMouse).ifPresent(f -> {
-							if (f.canGrab) {
+							if (Gdx.input.isButtonPressed(Input.Buttons.RIGHT)) { //Trying to view card
+								d.viewing = f;
+							} else if (f.canGrab) {
 								cursorColor = Color.PURPLE;
 								System.out.printf("Grabbing: %s\n", f.toString());
 								d.dragging = f;
@@ -134,8 +137,13 @@ public class Freecell extends ApplicationAdapter {
 				d.dragging = null;
 				d.autoComplete();
 			}
+			d.viewing = null;
 		}
-
+		if (!Objects.isNull(d.viewing)) {
+			batch.begin();
+			d.viewing.image.draw(batch);
+			batch.end();
+		}
 	}
 
 	@Override
