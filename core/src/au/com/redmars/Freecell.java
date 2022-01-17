@@ -1,155 +1,229 @@
 package au.com.redmars;
 
-import java.util.Objects;
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Random;
 
-import com.badlogic.gdx.ApplicationAdapter;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
-import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
-import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.utils.ScreenUtils;
-import com.badlogic.gdx.utils.viewport.StretchViewport;
-import com.badlogic.gdx.utils.viewport.Viewport;
+import com.badlogic.gdx.math.Rectangle;
 
-public class Freecell extends ApplicationAdapter {
-	SpriteBatch batch;
-	OrthographicCamera camera;
-	Deck d;
-	ShapeRenderer shapeRenderer;
-	Viewport viewport;
-	Vector3 currentMouse;
-	Color cursorColor;
+public class Freecell implements Tableau{
+    
+    private final Integer boardColumns = 8;
+    private final Integer freeCells = 4;
+    private final Integer cardMargin = 56;
+    private float startY = 0;
+    private float y = 0; 
 
-	@Override
-	public void create() {
-		batch = new SpriteBatch();
-		d = new Deck();
-		float width = (d.getCardWidth() * 8) + (d.getCardMargin() * 11);
-		camera = new OrthographicCamera(width, width * .6F);
-		camera.position.set(camera.viewportWidth / 2, camera.viewportHeight / 2, 0);
-		viewport = new StretchViewport(camera.viewportWidth, camera.viewportHeight, camera);
-		d.Deal(camera);
-		shapeRenderer = new ShapeRenderer();
-	}
+    Card dragging;
+    Card viewing;
+    Card[] deck = new Card[deckSize + 4];
+    List<Column> board = new ArrayList<>(); 
+    List<Column> homeCells = new ArrayList<>();
+    Texture cardTileSet = new Texture("classic_13x4x560x780.png");
 
-	@Override
-	public void resize(int width, int height) {
-		viewport.update(width, height);
-		System.out.printf("new size: %d x %d\n", width, height);
-	}
+    public int getCardMargin() {
+        return cardMargin;
+    }
 
-	public void drawCells() {
-		shapeRenderer.begin(ShapeType.Line);
+    public int getCardHeight() {
+        return cardHeight;
+    }
+
+    public int getCardWidth() {
+        return cardWidth;
+    }
+
+    public long countFreeCells() {  
+        return board.stream().filter(x -> x.maxCards == 1).filter(x -> x.cards.isEmpty()).count();
+    }
+
+    public long countEmptyColumns(Column dst) { 
+        return board.stream().filter(x -> x.maxCards != 1).filter(x -> x.cards.isEmpty()).filter(x -> !x.equals(dst)).count();
+    }
+
+    @Override
+    public int chainLength(Card card) {
+        return board.get(card.col).cards.size() - board.get(card.col).cards.indexOf(card);
+    }
+    
+    // See :
+    // https://boardgames.stackexchange.com/questions/45155/freecell-how-many-cards-can-be-moved-at-once
+    // For formula for spaces required to move chains
+
+    @Override
+    public boolean canMoveChain(Column dst, Integer chainLength) {
+        if (countEmptyColumns(dst) == 0) {
+            return countFreeCells() + 1 >= chainLength ? true : false;
+        } else {
+            return (Math.pow(2.0D , countEmptyColumns(dst)) * (countFreeCells() + 1) >= chainLength) ? true : false;
+        }
+    }
+
+    @Override
+    public void moveChain(Card src, Column dst) {
+        
+        Column srcCol = board.get(src.col);
+        List<Card> movingCards = srcCol.cards.subList(srcCol.cards.indexOf(src), srcCol.cards.size());
+        movingCards.forEach(c -> { 
+            c.col = dst.index; 
+        });
+        dst.cards.addAll(movingCards);
+        srcCol.cards.removeAll(movingCards);
+        refreshBoard();
+    }
+
+    private Integer lowestHomeCell() {
+        if (homeCells.stream().filter(c -> c.cards.isEmpty()).findFirst().isPresent()) return 1;
+        return homeCells.stream().min((b,c) -> b.cards.get(b.cards.size() - 1).faceValue - c.cards.get(c.cards.size() - 1).faceValue)
+            .get().cards.stream().map(c -> c.faceValue).max(Integer::compare).get() + 1; 
+    }
+
+    public Integer nextHomeCellCard(List<Card> cardList) {
+        if (cardList.isEmpty()) return 0;
+        return cardList.get(cardList.size() - 1).faceValue + 1;
+    }
+
+    private Card lastCard(List<Card> cardList) {
+        return cardList.get(cardList.size() - 1);
+    }
+
+    @Override
+    public void autoComplete() {
+        board.stream().filter(c -> !c.cards.isEmpty()).forEach(c -> {
+            Card last = lastCard(c.cards);
+            Column hc = homeCells.get(last.suit);
+            System.out.printf("%d lowest home cell\n", lowestHomeCell());
+            if (last.faceValue <= lowestHomeCell() && nextHomeCellCard(hc.cards) == last.faceValue) {
+                hc.cards.add(last);
+				c.cards.remove(last);
+				refreshBoard();
+				last.image.setPosition(hc.hitbox.x, hc.hitbox.y);
+                autoComplete();
+            }
+        });
+    }
+
+    @Override
+    public void refreshBoard() {
+        board.forEach(b -> {
+            y = startY;
+            if (b.index >= boardColumns) y = b.hitbox.y; //This is a free or home cell
+            b.cards.forEach(c -> {c.image.setPosition(b.hitbox.x, y);y = y - 160;});
+            refreshColumn(b.cards);
+            if (!b.cards.isEmpty()) b.populateHitBoxes();
+        });
+    }
+
+    @Override
+    public void refreshColumn(List<Card> col) {
+        ListIterator<Card> iterator = col.listIterator(col.size());
+        Card topCard = new Card();
+        Boolean endOfList = true;
+        while (iterator.hasPrevious()) {
+
+            Card c = iterator.previous();
+
+            if (endOfList) { // The last card can always be grabbed
+                c.canGrab = true;
+                endOfList = false;
+            } else if (topCard.canGrab && c.isChained(topCard)) {
+                c.canGrab = true;
+            } else {
+                c.canGrab = false;
+            }
+            topCard = c;
+        }
+    }
+
+    @Override
+    public void setupBoard(OrthographicCamera camera) {
+        board.clear();
+        homeCells.clear();
+        float y = camera.viewportHeight - cardMargin * 2 - cardHeight;
+        float x = cardMargin * 2;
+        for (int i = 0; i < boardColumns; ++i) { //8 playing columns
+            board.add(new Column(i,deckSize,new Rectangle(x,0,cardWidth,y)));
+            x = x + cardWidth + cardMargin;
+        }
+        for (int i = 0; i < freeCells; ++i) { //4 Freecell columns
+            Rectangle hitbox = new Rectangle((cardMargin * 2) + (560 * i) + (cardMargin * .5F * i),
+                    camera.viewportHeight - cardMargin - cardHeight, cardWidth, cardHeight);
+            board.add(new Column(i+boardColumns,1,hitbox));
+        }
+        for (int i = 4; i < 8; ++i) { //4 Home cells
+            Rectangle hitbox = new Rectangle((cardMargin * 5.5F) + (560 * i) + (cardMargin * .5F * i),
+					camera.viewportHeight - cardMargin - cardHeight, cardWidth, cardHeight);
+            homeCells.add(new Column(i - 4,suitSize,hitbox));
+        }
+
+    }
+
+    @Override
+    public void Deal(OrthographicCamera camera) {
+        setupBoard(camera);
+        Random seeder = new Random();
+        Long seed = seeder.nextLong();
+        System.out.printf("Current seed: %d\n",seed);
+        Random r = new Random(seed);
+        startY = camera.viewportHeight - cardMargin * 2 - cardHeight * 2;
+        for (int i = deckSize - 1; i > 0; i--) {
+
+            // Pick a random index from 0 to i
+            int j = r.nextInt(i);
+
+            // Swap arr[i] with the element at random index
+            Card temp = deck[i];
+            deck[i] = deck[j];
+            deck[j] = temp;
+        }
+        for (int i = 0; i < deckSize; ++i) {
+            board.get(i % boardColumns).cards.add(deck[i]);
+            deck[i].col = i % boardColumns;
+        }
+        refreshBoard();
+    }
+
+    @Override
+    public void drawBoard(Batch batch,ShapeRenderer shapeRenderer,OrthographicCamera camera) {
+        shapeRenderer.begin(ShapeType.Line);
 		shapeRenderer.setColor(Color.RED);
 		for (int fc = 0; fc < 4; ++fc) {
-			shapeRenderer.rect((d.getCardMargin() * 2) + (560 * fc) + (d.getCardMargin() * .5F * fc),
-					camera.viewportHeight - d.getCardMargin() - d.getCardHeight(), d.getCardWidth(), d.getCardHeight());
+			shapeRenderer.rect((cardMargin * 2) + (560 * fc) + (cardMargin * .5F * fc),
+					camera.viewportHeight - cardMargin - cardHeight, cardWidth, cardHeight);
 		}
 		for (int fc = 4; fc < 8; ++fc) {
-			shapeRenderer.rect((d.getCardMargin() * 5.5F) + (560 * fc) + (d.getCardMargin() * .5F * fc),
-					camera.viewportHeight - d.getCardMargin() - d.getCardHeight(), d.getCardWidth(), d.getCardHeight());
+			shapeRenderer.rect((cardMargin * 5.5F) + (560 * fc) + (cardMargin * .5F * fc),
+					camera.viewportHeight - cardMargin - cardHeight, cardWidth, cardHeight);
 		}
 		shapeRenderer.end();
-	}
-
-	@Override
-	public void render() {
-		ScreenUtils.clear(0.3F, 1, 0.3F, 1);
-		camera.update();
-		batch.setProjectionMatrix(camera.combined);
-		shapeRenderer.setProjectionMatrix(camera.combined);
-		drawCells();
-		batch.begin();
+        batch.begin();
 		batch.disableBlending();
-		d.board.forEach(column -> column.cards.forEach(card -> {
+        board.forEach(column -> column.cards.forEach(card -> {
 			card.image.draw(batch);
 		}));
-		d.homeCells.forEach(hc -> { 
+        homeCells.forEach(hc -> { 
 			if (!hc.cards.isEmpty()) {
 				hc.cards.get(hc.cards.size()-1).image.draw(batch);
 			}
 		});
-		batch.end();
-		if (Gdx.input.isKeyJustPressed(Keys.D)) {
-			d.Deal(camera);
-		}
-		if (Gdx.input.isKeyJustPressed(Keys.Q)) {
-			Gdx.app.exit();
-		}
-		if (Gdx.input.isTouched()) {
-			shapeRenderer.begin(ShapeType.Filled);
-			currentMouse = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0);
-			camera.unproject(currentMouse);
-			if (Gdx.input.justTouched()) { //Trying to Grab something or right click to view something
-				cursorColor = Color.RED;
-				Optional<Column> column = d.board.stream()
-						.filter(b -> b.hitbox.contains(currentMouse.x, currentMouse.y)).findFirst();
-				column.ifPresent(c -> {
-					if (Gdx.input.justTouched()) {
-						c.touchingCard(currentMouse).ifPresent(f -> {
-							if (Gdx.input.isButtonPressed(Input.Buttons.RIGHT)) { //Trying to view card
-								d.viewing = f;
-							} else if (f.canGrab) {
-								cursorColor = Color.PURPLE;
-								System.out.printf("Grabbing: %s\n", f.toString());
-								d.dragging = f;
-							}
-						});
-					}
-				});
-			}
-			shapeRenderer.setColor(cursorColor);
-			shapeRenderer.rect(currentMouse.x - 25, currentMouse.y - 25, 50, 50);
-			shapeRenderer.end();
-		}
-		else {
-			Vector3 mouse = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0);
-			camera.unproject(mouse);
-			if (!Objects.isNull(d.dragging)) {
-				Optional<Column> destination = d.board.stream()
-						.filter(b -> b.hitbox.contains(currentMouse.x, currentMouse.y)).findFirst();
-				destination.ifPresentOrElse(dst -> {
-					if (dst.cards.isEmpty() || d.dragging.canDropHere(dst.cards.get(dst.cards.size()-1))) {
-						int chainLength = d.chainLength(d.dragging);
-						if ((chainLength > 1 && dst.maxCards > 1 && d.canMoveChain(dst, chainLength)) || (chainLength == 1 && dst.cards.size() < dst.maxCards) ) {
-							System.out.printf("Moving Chain of %d Cards to Column %d starting with Card %s\n", chainLength, dst.index, d.dragging.toString());
-							d.moveChain(d.dragging, dst);
-						}
-					}
-				}, () -> {
-					Optional<Column> homecell = d.homeCells.stream()
-						.filter(b -> b.hitbox.contains(currentMouse.x, currentMouse.y)).findFirst();
-					homecell.ifPresent(x -> {
-						if (x.index == d.dragging.suit && ((x.cards.isEmpty() && d.dragging.faceValue == 0) || (!x.cards.isEmpty() && x.cards.get(x.cards.size() -1).faceValue == d.dragging.faceValue - 1))) {
-							x.cards.add(d.dragging);
-							d.board.get(d.dragging.col).cards.remove(d.dragging);
-							d.refreshBoard();
-							d.dragging.image.setPosition(x.hitbox.x, x.hitbox.y);
-						}
-					});
-				});
-				d.dragging = null;
-				d.autoComplete();
-			}
-			d.viewing = null;
-		}
-		if (!Objects.isNull(d.viewing)) {
-			batch.begin();
-			d.viewing.image.draw(batch);
-			batch.end();
-		}
-	}
+        batch.end();
+    }
 
-	@Override
-	public void dispose() {
-		batch.dispose();
-		d.cardTileSet.dispose();
-		shapeRenderer.dispose();
-	}
+    Freecell() {
+        for (int c = 0; c < deckSize; ++c) {
+            int a = c % 13;
+            int b = c / 13;
+            int srcX = a * cardWidth;
+            int srcY = b * cardHeight;
+            deck[c] = new Card(a, b, new Sprite(cardTileSet, srcX, srcY, cardWidth, cardHeight));
+        }
+    }
 }
