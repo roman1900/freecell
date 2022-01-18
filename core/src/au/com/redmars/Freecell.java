@@ -3,8 +3,13 @@ package au.com.redmars;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Random;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -13,19 +18,25 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector3;
 
-public class Freecell implements Tableau{
-    
+public class Freecell implements Tableau {
+
     private final Integer boardColumns = 8;
     private final Integer freeCells = 4;
     private final Integer cardMargin = 56;
     private float startY = 0;
-    private float y = 0; 
+    private float y = 0;
+    private ShapeRenderer shapeRenderer;
+    private OrthographicCamera camera;
+    private Vector3 currentMouse;
+    private Color cursorColor;
+    private Batch batch;
 
     Card dragging;
     Card viewing;
     Card[] deck = new Card[deckSize + 4];
-    List<Column> board = new ArrayList<>(); 
+    List<Column> board = new ArrayList<>();
     List<Column> homeCells = new ArrayList<>();
     Texture cardTileSet = new Texture("classic_13x4x560x780.png");
 
@@ -41,19 +52,20 @@ public class Freecell implements Tableau{
         return cardWidth;
     }
 
-    public long countFreeCells() {  
+    public long countFreeCells() {
         return board.stream().filter(x -> x.maxCards == 1).filter(x -> x.cards.isEmpty()).count();
     }
 
-    public long countEmptyColumns(Column dst) { 
-        return board.stream().filter(x -> x.maxCards != 1).filter(x -> x.cards.isEmpty()).filter(x -> !x.equals(dst)).count();
+    public long countEmptyColumns(Column dst) {
+        return board.stream().filter(x -> x.maxCards != 1).filter(x -> x.cards.isEmpty()).filter(x -> !x.equals(dst))
+                .count();
     }
 
     @Override
     public int chainLength(Card card) {
         return board.get(card.col).cards.size() - board.get(card.col).cards.indexOf(card);
     }
-    
+
     // See :
     // https://boardgames.stackexchange.com/questions/45155/freecell-how-many-cards-can-be-moved-at-once
     // For formula for spaces required to move chains
@@ -63,17 +75,17 @@ public class Freecell implements Tableau{
         if (countEmptyColumns(dst) == 0) {
             return countFreeCells() + 1 >= chainLength ? true : false;
         } else {
-            return (Math.pow(2.0D , countEmptyColumns(dst)) * (countFreeCells() + 1) >= chainLength) ? true : false;
+            return (Math.pow(2.0D, countEmptyColumns(dst)) * (countFreeCells() + 1) >= chainLength) ? true : false;
         }
     }
 
     @Override
     public void moveChain(Card src, Column dst) {
-        
+
         Column srcCol = board.get(src.col);
         List<Card> movingCards = srcCol.cards.subList(srcCol.cards.indexOf(src), srcCol.cards.size());
-        movingCards.forEach(c -> { 
-            c.col = dst.index; 
+        movingCards.forEach(c -> {
+            c.col = dst.index;
         });
         dst.cards.addAll(movingCards);
         srcCol.cards.removeAll(movingCards);
@@ -81,13 +93,16 @@ public class Freecell implements Tableau{
     }
 
     private Integer lowestHomeCell() {
-        if (homeCells.stream().filter(c -> c.cards.isEmpty()).findFirst().isPresent()) return 1;
-        return homeCells.stream().min((b,c) -> b.cards.get(b.cards.size() - 1).faceValue - c.cards.get(c.cards.size() - 1).faceValue)
-            .get().cards.stream().map(c -> c.faceValue).max(Integer::compare).get() + 1; 
+        if (homeCells.stream().filter(c -> c.cards.isEmpty()).findFirst().isPresent())
+            return 1;
+        return homeCells.stream()
+                .min((b, c) -> b.cards.get(b.cards.size() - 1).faceValue - c.cards.get(c.cards.size() - 1).faceValue)
+                .get().cards.stream().map(c -> c.faceValue).max(Integer::compare).get() + 1;
     }
 
     public Integer nextHomeCellCard(List<Card> cardList) {
-        if (cardList.isEmpty()) return 0;
+        if (cardList.isEmpty())
+            return 0;
         return cardList.get(cardList.size() - 1).faceValue + 1;
     }
 
@@ -103,9 +118,9 @@ public class Freecell implements Tableau{
             System.out.printf("%d lowest home cell\n", lowestHomeCell());
             if (last.faceValue <= lowestHomeCell() && nextHomeCellCard(hc.cards) == last.faceValue) {
                 hc.cards.add(last);
-				c.cards.remove(last);
-				refreshBoard();
-				last.image.setPosition(hc.hitbox.x, hc.hitbox.y);
+                c.cards.remove(last);
+                refreshBoard();
+                last.image.setPosition(hc.hitbox.x, hc.hitbox.y);
                 autoComplete();
             }
         });
@@ -115,10 +130,15 @@ public class Freecell implements Tableau{
     public void refreshBoard() {
         board.forEach(b -> {
             y = startY;
-            if (b.index >= boardColumns) y = b.hitbox.y; //This is a free or home cell
-            b.cards.forEach(c -> {c.image.setPosition(b.hitbox.x, y);y = y - 160;});
+            if (b.index >= boardColumns)
+                y = b.hitbox.y; // This is a free or home cell
+            b.cards.forEach(c -> {
+                c.image.setPosition(b.hitbox.x, y);
+                y = y - 160;
+            });
             refreshColumn(b.cards);
-            if (!b.cards.isEmpty()) b.populateHitBoxes();
+            if (!b.cards.isEmpty())
+                b.populateHitBoxes();
         });
     }
 
@@ -144,34 +164,34 @@ public class Freecell implements Tableau{
     }
 
     @Override
-    public void setupBoard(OrthographicCamera camera) {
+    public void setupBoard() {
         board.clear();
         homeCells.clear();
         float y = camera.viewportHeight - cardMargin * 2 - cardHeight;
         float x = cardMargin * 2;
-        for (int i = 0; i < boardColumns; ++i) { //8 playing columns
-            board.add(new Column(i,deckSize,new Rectangle(x,0,cardWidth,y)));
+        for (int i = 0; i < boardColumns; ++i) { // 8 playing columns
+            board.add(new Column(i, deckSize, new Rectangle(x, 0, cardWidth, y)));
             x = x + cardWidth + cardMargin;
         }
-        for (int i = 0; i < freeCells; ++i) { //4 Freecell columns
+        for (int i = 0; i < freeCells; ++i) { // 4 Freecell columns
             Rectangle hitbox = new Rectangle((cardMargin * 2) + (560 * i) + (cardMargin * .5F * i),
                     camera.viewportHeight - cardMargin - cardHeight, cardWidth, cardHeight);
-            board.add(new Column(i+boardColumns,1,hitbox));
+            board.add(new Column(i + boardColumns, 1, hitbox));
         }
-        for (int i = 4; i < 8; ++i) { //4 Home cells
+        for (int i = 4; i < 8; ++i) { // 4 Home cells
             Rectangle hitbox = new Rectangle((cardMargin * 5.5F) + (560 * i) + (cardMargin * .5F * i),
-					camera.viewportHeight - cardMargin - cardHeight, cardWidth, cardHeight);
-            homeCells.add(new Column(i - 4,suitSize,hitbox));
+                    camera.viewportHeight - cardMargin - cardHeight, cardWidth, cardHeight);
+            homeCells.add(new Column(i - 4, suitSize, hitbox));
         }
 
     }
 
     @Override
-    public void Deal(OrthographicCamera camera) {
-        setupBoard(camera);
+    public void Deal() {
+        setupBoard();
         Random seeder = new Random();
         Long seed = seeder.nextLong();
-        System.out.printf("Current seed: %d\n",seed);
+        System.out.printf("Current seed: %d\n", seed);
         Random r = new Random(seed);
         startY = camera.viewportHeight - cardMargin * 2 - cardHeight * 2;
         for (int i = deckSize - 1; i > 0; i--) {
@@ -192,32 +212,114 @@ public class Freecell implements Tableau{
     }
 
     @Override
-    public void drawBoard(Batch batch,ShapeRenderer shapeRenderer,OrthographicCamera camera) {
+    public void drawBoard() {
         shapeRenderer.begin(ShapeType.Line);
-		shapeRenderer.setColor(Color.RED);
-		for (int fc = 0; fc < 4; ++fc) {
-			shapeRenderer.rect((cardMargin * 2) + (560 * fc) + (cardMargin * .5F * fc),
-					camera.viewportHeight - cardMargin - cardHeight, cardWidth, cardHeight);
-		}
-		for (int fc = 4; fc < 8; ++fc) {
-			shapeRenderer.rect((cardMargin * 5.5F) + (560 * fc) + (cardMargin * .5F * fc),
-					camera.viewportHeight - cardMargin - cardHeight, cardWidth, cardHeight);
-		}
-		shapeRenderer.end();
+        shapeRenderer.setColor(Color.RED);
+        for (int fc = 0; fc < 4; ++fc) {
+            shapeRenderer.rect((cardMargin * 2) + (560 * fc) + (cardMargin * .5F * fc),
+                    camera.viewportHeight - cardMargin - cardHeight, cardWidth, cardHeight);
+        }
+        for (int fc = 4; fc < 8; ++fc) {
+            shapeRenderer.rect((cardMargin * 5.5F) + (560 * fc) + (cardMargin * .5F * fc),
+                    camera.viewportHeight - cardMargin - cardHeight, cardWidth, cardHeight);
+        }
+        shapeRenderer.end();
         batch.begin();
-		batch.disableBlending();
+        batch.disableBlending();
         board.forEach(column -> column.cards.forEach(card -> {
-			card.image.draw(batch);
-		}));
-        homeCells.forEach(hc -> { 
-			if (!hc.cards.isEmpty()) {
-				hc.cards.get(hc.cards.size()-1).image.draw(batch);
-			}
-		});
+            card.image.draw(batch);
+        }));
+        homeCells.forEach(hc -> {
+            if (!hc.cards.isEmpty()) {
+                hc.cards.get(hc.cards.size() - 1).image.draw(batch);
+            }
+        });
         batch.end();
     }
 
-    Freecell() {
+    @Override
+    public void touchEvent() {
+        shapeRenderer.begin(ShapeType.Filled);
+        currentMouse = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0);
+        camera.unproject(currentMouse);
+        if (Gdx.input.justTouched()) { // Trying to Grab something or right click to view something
+            cursorColor = Color.RED;
+            Optional<Column> column = board.stream()
+                    .filter(b -> b.hitbox.contains(currentMouse.x, currentMouse.y)).findFirst();
+            column.ifPresent(c -> {
+                if (Gdx.input.justTouched()) {
+                    c.touchingCard(currentMouse).ifPresent(f -> {
+                        if (Gdx.input.isButtonPressed(Input.Buttons.RIGHT)) { // Trying to view card
+                            viewing = f;
+                        } else if (f.canGrab) {
+                            cursorColor = Color.PURPLE;
+                            System.out.printf("Grabbing: %s\n", f.toString());
+                            dragging = f;
+                        }
+                    });
+                }
+            });
+        }
+        shapeRenderer.setColor(cursorColor);
+        shapeRenderer.rect(currentMouse.x - 25, currentMouse.y - 25, 50, 50);
+        shapeRenderer.end();
+    }
+
+    @Override
+    public void moveEvent() {
+        currentMouse = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0);
+        camera.unproject(currentMouse);
+        if (!Objects.isNull(dragging)) {
+            Optional<Column> destination = board.stream()
+                    .filter(b -> b.hitbox.contains(currentMouse.x, currentMouse.y)).findFirst();
+            destination.ifPresentOrElse(dst -> {
+                if (dst.cards.isEmpty() || dragging.canDropHere(dst.cards.get(dst.cards.size() - 1))) {
+                    int chainLength = chainLength(dragging);
+                    if ((chainLength > 1 && dst.maxCards > 1 && canMoveChain(dst, chainLength))
+                            || (chainLength == 1 && dst.cards.size() < dst.maxCards)) {
+                        System.out.printf("Moving Chain of %d Cards to Column %d starting with Card %s\n", chainLength,
+                                dst.index, dragging.toString());
+                        moveChain(dragging, dst);
+                    }
+                }
+            }, () -> {
+                Optional<Column> homecell = homeCells.stream()
+                        .filter(b -> b.hitbox.contains(currentMouse.x, currentMouse.y)).findFirst();
+                homecell.ifPresent(x -> {
+                    if (x.index == dragging.suit
+                            && ((x.cards.isEmpty() && dragging.faceValue == 0) || (!x.cards.isEmpty()
+                                    && x.cards.get(x.cards.size() - 1).faceValue == dragging.faceValue - 1))) {
+                        x.cards.add(dragging);
+                        board.get(dragging.col).cards.remove(dragging);
+                        refreshBoard();
+                        dragging.image.setPosition(x.hitbox.x, x.hitbox.y);
+                    }
+                });
+            });
+            dragging = null;
+            autoComplete();
+        }
+        viewing = null;
+    }
+
+    @Override
+    public void viewEvent() {
+        if (!Objects.isNull(viewing)) {
+			batch.begin();
+			viewing.image.draw(batch);
+			batch.end();
+		}
+    }
+
+    @Override
+    public void dispose() {
+        cardTileSet.dispose();
+    }
+
+    Freecell(Batch batch, OrthographicCamera camera, ShapeRenderer shapeRenderer) {
+        this.camera = camera;
+        this.batch = batch;
+        this.shapeRenderer = shapeRenderer;
         for (int c = 0; c < deckSize; ++c) {
             int a = c % 13;
             int b = c / 13;
@@ -226,4 +328,5 @@ public class Freecell implements Tableau{
             deck[c] = new Card(a, b, new Sprite(cardTileSet, srcX, srcY, cardWidth, cardHeight));
         }
     }
+
 }
