@@ -9,7 +9,7 @@ import java.util.Random;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -39,6 +39,8 @@ public class Freecell implements Tableau {
     List<Column> board = new ArrayList<>();
     List<Column> homeCells = new ArrayList<>();
     Texture cardTileSet = new Texture("classic_13x4x560x780.png");
+    Sound pickupSound;
+    Sound putDownSound;
 
     public int getCardMargin() {
         return cardMargin;
@@ -236,7 +238,25 @@ public class Freecell implements Tableau {
         });
         batch.end();
     }
+    
+    @Override
+    public void setPickupSound(Sound sound) {
+        pickupSound = sound;
+    }
 
+    @Override
+	public void setPutDownSound(Sound sound) {
+        putDownSound = sound;
+    }
+    @Override
+    public Sound getPickupSound() {
+        return pickupSound;
+    }
+
+    @Override
+	public Sound getPutDownSound() {
+        return putDownSound;
+    }
     @Override
     public void touchEvent() {
         shapeRenderer.begin(ShapeType.Filled);
@@ -252,6 +272,7 @@ public class Freecell implements Tableau {
                         if (Gdx.input.isButtonPressed(Input.Buttons.RIGHT)) { // Trying to view card
                             viewing = f;
                         } else if (f.canGrab) {
+                            pickupSound.play();
                             cursorColor = Color.PURPLE;
                             System.out.printf("Grabbing: %s\n", f.toString());
                             dragging = f;
@@ -280,6 +301,7 @@ public class Freecell implements Tableau {
                         System.out.printf("Moving Chain of %d Cards to Column %d starting with Card %s\n", chainLength,
                                 dst.index, dragging.toString());
                         moveChain(dragging, dst);
+                        putDownSound.play();
                     }
                 }
             }, () -> {

@@ -2,6 +2,8 @@ package au.com.redmars;
 
 import java.util.List;
 
+import com.badlogic.gdx.audio.Sound;
+
 public interface Tableau {
 
 	public final Integer deckSize = 52;
@@ -18,6 +20,14 @@ public interface Tableau {
 	public void autoComplete();
 
 	public void refreshBoard();
+
+	public void setPickupSound(Sound sound);
+
+	public void setPutDownSound(Sound sound);
+
+	public Sound getPickupSound();
+
+	public Sound getPutDownSound();
 
 	public void refreshColumn(List<Card> col);
 

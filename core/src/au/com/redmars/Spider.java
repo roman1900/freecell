@@ -2,6 +2,7 @@ package au.com.redmars;
 
 import java.util.List;
 
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.Batch;
@@ -15,6 +16,8 @@ public class Spider implements Tableau {
 	private Vector3 currentMouse;
 	private Color cursorColor;
 	private Batch batch;
+	private Sound pickupSound;
+	private Sound putDownSound;
 
 	@Override
 	public int chainLength(Card card) {
@@ -50,6 +53,25 @@ public class Spider implements Tableau {
 	public void setupBoard() {
 
 	}
+	
+	@Override
+    public void setPickupSound(Sound sound) {
+        pickupSound = sound;
+    }
+
+    @Override
+	public void setPutDownSound(Sound sound) {
+        putDownSound = sound;
+    }
+	@Override
+    public Sound getPickupSound() {
+        return pickupSound;
+    }
+
+    @Override
+	public Sound getPutDownSound() {
+        return putDownSound;
+    }
 
 	@Override
 	public void drawBoard() {

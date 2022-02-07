@@ -11,3 +11,9 @@ Keys:
 
 - D - Redeal a new game
 - Q - Quit the game
+
+
+Credits:
+Card images taken from
+Sounds taken from https://opengameart.org/users/haeldb under public domain CC0
+Card images taken from https://opengameart.org/users/ryandansie under Creative Commons

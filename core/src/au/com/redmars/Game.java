@@ -3,6 +3,7 @@ package au.com.redmars;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -22,6 +23,8 @@ public class Game extends ApplicationAdapter {
 	Color cursorColor;
 	float width;
 	float height;
+	Sound draw;
+	Sound playcard;
 
 	@Override
 	public void create() {
@@ -41,7 +44,8 @@ public class Game extends ApplicationAdapter {
 		viewport = new StretchViewport(camera.viewportWidth, camera.viewportHeight, camera);
 		solitaire = new Freecell(batch, camera, shapeRenderer);
 		solitaire.Deal();
-
+		solitaire.setPickupSound(Gdx.audio.newSound(Gdx.files.internal("draw.wav")));
+		solitaire.setPutDownSound(Gdx.audio.newSound(Gdx.files.internal("playcard.wav")));
 	}
 
 	@Override
@@ -84,5 +88,7 @@ public class Game extends ApplicationAdapter {
 		batch.dispose();
 		solitaire.dispose();
 		shapeRenderer.dispose();
+		solitaire.getPickupSound().dispose();
+		solitaire.getPutDownSound().dispose();
 	}
 }
