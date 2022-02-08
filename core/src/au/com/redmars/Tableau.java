@@ -10,6 +10,7 @@ public interface Tableau {
 	public final Integer suitSize = 13;
 	public final Integer cardHeight = 780;
 	public final Integer cardWidth = 560;
+	public final Integer cardMargin = 56;
 
 	public int chainLength(Card card);
 

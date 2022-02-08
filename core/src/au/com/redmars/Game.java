@@ -25,34 +25,32 @@ public class Game extends ApplicationAdapter {
 	float height;
 	Sound draw;
 	Sound playcard;
-
+	Integer widthRequired;
 	@Override
 	public void create() {
 		batch = new SpriteBatch();
 		shapeRenderer = new ShapeRenderer();
-		// float ratio = Gdx.graphics.getDisplayMode().width /
-		// Gdx.graphics.getDisplayMode().height;
-		width = Gdx.graphics.getDisplayMode().width; // (d.getCardWidth() * 8) + (d.getCardMargin() * 11);
-		height = Gdx.graphics.getDisplayMode().height;
-		// if (width > Gdx.graphics.getDisplayMode().width) {
-		// height = width / ratio;
-		// } else {
-		// width = Gdx.graphics.getDisplayMode().width;
-		// }
-		camera = new OrthographicCamera(width * 2.0F, height * 2.0F);
+		
+		width = Gdx.graphics.getWidth(); //getDisplayMode().width; 
+		height = Gdx.graphics.getHeight(); //getDisplayMode().height;
+		
+		widthRequired = Tableau.cardWidth * 8 + Tableau.cardMargin * 11;
+		if (widthRequired > width) {
+			float ratio = widthRequired / width;
+			camera = new OrthographicCamera(widthRequired, height * ratio);	
+		}
+		else {
+			camera = new OrthographicCamera(width, height);
+		}
 		camera.position.set(camera.viewportWidth / 2, camera.viewportHeight / 2, 0);
 		viewport = new StretchViewport(camera.viewportWidth, camera.viewportHeight, camera);
+		System.out.printf("viewport size: %f x %f\n",viewport.getWorldWidth(),viewport.getWorldHeight());
 		solitaire = new Freecell(batch, camera, shapeRenderer);
-		solitaire.Deal();
 		solitaire.setPickupSound(Gdx.audio.newSound(Gdx.files.internal("draw.wav")));
 		solitaire.setPutDownSound(Gdx.audio.newSound(Gdx.files.internal("playcard.wav")));
+		solitaire.Deal();
 	}
 
-	@Override
-	public void resize(int width, int height) {
-		viewport.update(width, height);
-		System.out.printf("new size: %d x %d\n", width, height);
-	}
 
 	@Override
 	public void render() {

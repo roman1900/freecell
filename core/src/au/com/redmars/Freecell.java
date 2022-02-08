@@ -24,7 +24,6 @@ public class Freecell implements Tableau {
 
     private final Integer boardColumns = 8;
     private final Integer freeCells = 4;
-    private final Integer cardMargin = 56;
     private float startY = 0;
     private float y = 0;
     private ShapeRenderer shapeRenderer;
@@ -117,11 +116,11 @@ public class Freecell implements Tableau {
         board.stream().filter(c -> !c.cards.isEmpty()).forEach(c -> {
             Card last = lastCard(c.cards);
             Column hc = homeCells.get(last.suit);
-            System.out.printf("%d lowest home cell\n", lowestHomeCell());
             if (last.faceValue <= lowestHomeCell() && nextHomeCellCard(hc.cards) == last.faceValue) {
                 hc.cards.add(last);
                 c.cards.remove(last);
                 refreshBoard();
+                putDownSound.play();
                 last.image.setPosition(hc.hitbox.x, hc.hitbox.y);
                 autoComplete();
             }
@@ -209,6 +208,7 @@ public class Freecell implements Tableau {
         for (int i = 0; i < deckSize; ++i) {
             board.get(i % boardColumns).cards.add(deck[i]);
             deck[i].col = i % boardColumns;
+            putDownSound.play();
         }
         refreshBoard();
     }
@@ -274,7 +274,6 @@ public class Freecell implements Tableau {
                         } else if (f.canGrab) {
                             pickupSound.play();
                             cursorColor = Color.PURPLE;
-                            System.out.printf("Grabbing: %s\n", f.toString());
                             dragging = f;
                         }
                     });
@@ -298,8 +297,6 @@ public class Freecell implements Tableau {
                     int chainLength = chainLength(dragging);
                     if ((chainLength > 1 && dst.maxCards > 1 && canMoveChain(dst, chainLength))
                             || (chainLength == 1 && dst.cards.size() < dst.maxCards)) {
-                        System.out.printf("Moving Chain of %d Cards to Column %d starting with Card %s\n", chainLength,
-                                dst.index, dragging.toString());
                         moveChain(dragging, dst);
                         putDownSound.play();
                     }
@@ -314,6 +311,7 @@ public class Freecell implements Tableau {
                         x.cards.add(dragging);
                         board.get(dragging.col).cards.remove(dragging);
                         refreshBoard();
+                        putDownSound.play();
                         dragging.image.setPosition(x.hitbox.x, x.hitbox.y);
                     }
                 });
