@@ -31,7 +31,7 @@ public class Freecell implements Tableau {
     private Vector3 currentMouse;
     private Color cursorColor;
     private Batch batch;
-
+    private Integer cardGap;
     Card dragging;
     Card viewing;
     Card[] deck = new Card[deckSize + 4];
@@ -133,13 +133,18 @@ public class Freecell implements Tableau {
             y = startY;
             if (b.index >= boardColumns)
                 y = b.hitbox.y; // This is a free or home cell
+            cardGap = 160; //The gapo between cards in a column
+            while (y - (cardGap * (b.cards.size() - 1)) < 0 && cardGap > 20)
+            { //Adjust the gap if the cards would be placed off screen
+                cardGap -= 5;
+            }
             b.cards.forEach(c -> {
                 c.image.setPosition(b.hitbox.x, y);
-                y = y - 160;
+                y = y - cardGap;
             });
             refreshColumn(b.cards);
             if (!b.cards.isEmpty())
-                b.populateHitBoxes();
+                b.populateHitBoxes(cardGap);
         });
     }
 

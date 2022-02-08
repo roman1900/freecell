@@ -16,12 +16,11 @@ import com.badlogic.gdx.math.Vector3;
 public class Column {
 	public Integer index;
 	public Integer maxCards;
-	public final float cardGap = 160;
 	public List<Card> cards;
 	public Rectangle[] cardHitBoxes;
 	public Rectangle hitbox;
 	
-	public void populateHitBoxes() {
+	public void populateHitBoxes(float cardGap) {
 		float topOfStack = hitbox.y + hitbox.height;
 		cardHitBoxes = new Rectangle[cards.size()];
 		int index = 1;
