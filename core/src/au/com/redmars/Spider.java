@@ -113,4 +113,16 @@ public class Spider implements Tableau {
 		// TODO Auto-generated method stub
 
 	}
+
+	@Override
+	public float getBoardMargin() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public void setBoardMargin(float margin) {
+		// TODO Auto-generated method stub
+		
+	}
 }

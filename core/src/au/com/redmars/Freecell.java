@@ -32,6 +32,8 @@ public class Freecell implements Tableau {
     private Color cursorColor;
     private Batch batch;
     private Integer cardGap;
+    private float boardMargin;
+    private Vector3 startDragMousePos;
     Card dragging;
     Card viewing;
     Card[] deck = new Card[deckSize + 4];
@@ -51,6 +53,14 @@ public class Freecell implements Tableau {
 
     public int getCardWidth() {
         return cardWidth;
+    }
+
+    public float getBoardMargin() {
+        return boardMargin;
+    }
+
+    public void setBoardMargin(float margin){
+        boardMargin = margin;
     }
 
     public long countFreeCells() {
@@ -90,7 +100,21 @@ public class Freecell implements Tableau {
         });
         dst.cards.addAll(movingCards);
         srcCol.cards.removeAll(movingCards);
-        refreshBoard();
+    }
+
+    public void drawChain(Card src,Vector3 currentMouse) {
+        Vector3 offset = new Vector3(startDragMousePos);
+        offset.sub(currentMouse);
+        Column srcCol = board.get(src.col);
+        List<Card> movingCards = srcCol.cards.subList(srcCol.cards.indexOf(src), srcCol.cards.size());
+        batch.begin();
+        movingCards.forEach(c -> {
+            c.image.setX(c.image.getX()-offset.x);
+            c.image.setY(c.image.getY()-offset.y);
+            c.image.draw(batch);
+        });
+        batch.end();
+        startDragMousePos = new Vector3(currentMouse);
     }
 
     private Integer lowestHomeCell() {
@@ -133,7 +157,7 @@ public class Freecell implements Tableau {
             y = startY;
             if (b.index >= boardColumns)
                 y = b.hitbox.y; // This is a free or home cell
-            cardGap = 160; //The gapo between cards in a column
+            cardGap = 160; //The gap between cards in a column
             while (y - (cardGap * (b.cards.size() - 1)) < 0 && cardGap > 20)
             { //Adjust the gap if the cards would be placed off screen
                 cardGap -= 5;
@@ -174,7 +198,7 @@ public class Freecell implements Tableau {
         board.clear();
         homeCells.clear();
         float y = camera.viewportHeight - cardMargin * 2 - cardHeight;
-        float x = cardMargin * 2;
+        float x = boardMargin;
         for (int i = 0; i < boardColumns; ++i) { // 8 playing columns
             board.add(new Column(i, deckSize, new Rectangle(x, 0, cardWidth, y)));
             x = x + cardWidth + cardMargin;
@@ -278,12 +302,16 @@ public class Freecell implements Tableau {
                             viewing = f;
                         } else if (f.canGrab) {
                             pickupSound.play();
+                            startDragMousePos = new Vector3(currentMouse);
                             cursorColor = Color.PURPLE;
                             dragging = f;
                         }
                     });
                 }
             });
+        }
+        if (Objects.nonNull(dragging) && currentMouse != startDragMousePos) {
+            drawChain(dragging,currentMouse);
         }
         shapeRenderer.setColor(cursorColor);
         shapeRenderer.rect(currentMouse.x - 25, currentMouse.y - 25, 50, 50);
@@ -315,13 +343,14 @@ public class Freecell implements Tableau {
                                     && x.cards.get(x.cards.size() - 1).faceValue == dragging.faceValue - 1))) {
                         x.cards.add(dragging);
                         board.get(dragging.col).cards.remove(dragging);
-                        refreshBoard();
                         putDownSound.play();
                         dragging.image.setPosition(x.hitbox.x, x.hitbox.y);
                     }
                 });
             });
+            refreshBoard();
             dragging = null;
+            startDragMousePos = null;
             autoComplete();
         }
         viewing = null;
@@ -339,12 +368,15 @@ public class Freecell implements Tableau {
     @Override
     public void dispose() {
         cardTileSet.dispose();
+        putDownSound.dispose();
+        pickupSound.dispose();
     }
 
     Freecell(Batch batch, OrthographicCamera camera, ShapeRenderer shapeRenderer) {
         this.camera = camera;
         this.batch = batch;
         this.shapeRenderer = shapeRenderer;
+        this.boardMargin = camera.viewportWidth / 2 - (cardWidth * 4.0F + cardMargin * 3.5F);
         for (int c = 0; c < deckSize; ++c) {
             int a = c % 13;
             int b = c / 13;

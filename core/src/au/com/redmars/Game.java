@@ -86,7 +86,5 @@ public class Game extends ApplicationAdapter {
 		batch.dispose();
 		solitaire.dispose();
 		shapeRenderer.dispose();
-		solitaire.getPickupSound().dispose();
-		solitaire.getPutDownSound().dispose();
 	}
 }
