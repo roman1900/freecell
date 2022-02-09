@@ -20,6 +20,20 @@ public class Column {
 	public Rectangle[] cardHitBoxes;
 	public Rectangle hitbox;
 	
+	private Column columnClone;
+
+	@Override
+	public Object clone() {
+		columnClone = null;
+		try {
+			columnClone = (Column) super.clone();
+		} catch (CloneNotSupportedException e) {
+			columnClone = new Column(this.index, this.maxCards, this.hitbox);
+		}
+		cards.forEach(x -> columnClone.cards.add((Card)x.clone()));
+		return columnClone;
+	}
+
 	public void populateHitBoxes(float cardGap) {
 		float topOfStack = hitbox.y + hitbox.height;
 		cardHitBoxes = new Rectangle[cards.size()];

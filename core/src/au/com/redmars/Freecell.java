@@ -1,6 +1,8 @@
 package au.com.redmars;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Objects;
@@ -15,6 +17,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Rectangle;
@@ -37,6 +40,7 @@ public class Freecell implements Tableau {
     Card dragging;
     Card viewing;
     Card[] deck = new Card[deckSize + 4];
+    List<List<Column>> undo = new ArrayList<>();
     List<Column> board = new ArrayList<>();
     List<Column> homeCells = new ArrayList<>();
     Texture cardTileSet = new Texture("classic_13x4x560x780.png");
@@ -59,7 +63,7 @@ public class Freecell implements Tableau {
         return boardMargin;
     }
 
-    public void setBoardMargin(float margin){
+    public void setBoardMargin(float margin) {
         boardMargin = margin;
     }
 
@@ -102,15 +106,15 @@ public class Freecell implements Tableau {
         srcCol.cards.removeAll(movingCards);
     }
 
-    public void drawChain(Card src,Vector3 currentMouse) {
+    public void drawChain(Card src, Vector3 currentMouse) {
         Vector3 offset = new Vector3(startDragMousePos);
         offset.sub(currentMouse);
         Column srcCol = board.get(src.col);
         List<Card> movingCards = srcCol.cards.subList(srcCol.cards.indexOf(src), srcCol.cards.size());
         batch.begin();
         movingCards.forEach(c -> {
-            c.image.setX(c.image.getX()-offset.x);
-            c.image.setY(c.image.getY()-offset.y);
+            c.image.setX(c.image.getX() - offset.x);
+            c.image.setY(c.image.getY() - offset.y);
             c.image.draw(batch);
         });
         batch.end();
@@ -157,9 +161,9 @@ public class Freecell implements Tableau {
             y = startY;
             if (b.index >= boardColumns)
                 y = b.hitbox.y; // This is a free or home cell
-            cardGap = 160; //The gap between cards in a column
-            while (y - (cardGap * (b.cards.size() - 1)) < 0 && cardGap > 20)
-            { //Adjust the gap if the cards would be placed off screen
+            cardGap = 160; // The gap between cards in a column
+            while (y - (cardGap * (b.cards.size() - 1)) < 0 && cardGap > 20) { // Adjust the gap if the cards would be
+                                                                               // placed off screen
                 cardGap -= 5;
             }
             b.cards.forEach(c -> {
@@ -170,6 +174,11 @@ public class Freecell implements Tableau {
             if (!b.cards.isEmpty())
                 b.populateHitBoxes(cardGap);
         });
+        List<Column> copy = new ArrayList<>();
+        board.forEach(c -> copy.add((Column)c.clone()));
+        undo.add(copy);
+        System.out.println("UNDO LIST:  ----------");
+        undo.forEach(c -> System.out.printf("HASHCODE: %s\n",c.hashCode()));
     }
 
     @Override
@@ -267,25 +276,27 @@ public class Freecell implements Tableau {
         });
         batch.end();
     }
-    
+
     @Override
     public void setPickupSound(Sound sound) {
         pickupSound = sound;
     }
 
     @Override
-	public void setPutDownSound(Sound sound) {
+    public void setPutDownSound(Sound sound) {
         putDownSound = sound;
     }
+
     @Override
     public Sound getPickupSound() {
         return pickupSound;
     }
 
     @Override
-	public Sound getPutDownSound() {
+    public Sound getPutDownSound() {
         return putDownSound;
     }
+
     @Override
     public void touchEvent() {
         shapeRenderer.begin(ShapeType.Filled);
@@ -311,7 +322,7 @@ public class Freecell implements Tableau {
             });
         }
         if (Objects.nonNull(dragging) && currentMouse != startDragMousePos) {
-            drawChain(dragging,currentMouse);
+            drawChain(dragging, currentMouse);
         }
         shapeRenderer.setColor(cursorColor);
         shapeRenderer.rect(currentMouse.x - 25, currentMouse.y - 25, 50, 50);
@@ -359,10 +370,10 @@ public class Freecell implements Tableau {
     @Override
     public void viewEvent() {
         if (!Objects.isNull(viewing)) {
-			batch.begin();
-			viewing.image.draw(batch);
-			batch.end();
-		}
+            batch.begin();
+            viewing.image.draw(batch);
+            batch.end();
+        }
     }
 
     @Override
@@ -384,6 +395,15 @@ public class Freecell implements Tableau {
             int srcY = b * cardHeight;
             deck[c] = new Card(a, b, new Sprite(cardTileSet, srcX, srcY, cardWidth, cardHeight));
         }
+    }
+
+    @Override
+    public void undoMove() {
+        undo.forEach(x -> System.out.printf("Hashcode: %s\n", x.hashCode()));
+        undo.remove(undo.size() - 1);
+        board = new ArrayList<>();
+        undo.get(undo.size() - 1).forEach(c -> board.add((Column)c.clone()));
+        refreshBoard();
     }
 
 }

@@ -49,4 +49,7 @@ public interface Tableau {
 	public void viewEvent();
 
 	public void dispose();
+
+	public void undoMove();
+
 }

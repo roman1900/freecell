@@ -53,25 +53,26 @@ public class Spider implements Tableau {
 	public void setupBoard() {
 
 	}
-	
-	@Override
-    public void setPickupSound(Sound sound) {
-        pickupSound = sound;
-    }
 
-    @Override
+	@Override
+	public void setPickupSound(Sound sound) {
+		pickupSound = sound;
+	}
+
+	@Override
 	public void setPutDownSound(Sound sound) {
-        putDownSound = sound;
-    }
-	@Override
-    public Sound getPickupSound() {
-        return pickupSound;
-    }
+		putDownSound = sound;
+	}
 
-    @Override
+	@Override
+	public Sound getPickupSound() {
+		return pickupSound;
+	}
+
+	@Override
 	public Sound getPutDownSound() {
-        return putDownSound;
-    }
+		return putDownSound;
+	}
 
 	@Override
 	public void drawBoard() {
@@ -123,6 +124,12 @@ public class Spider implements Tableau {
 	@Override
 	public void setBoardMargin(float margin) {
 		// TODO Auto-generated method stub
-		
+
+	}
+
+	@Override
+	public void undoMove() {
+		// TODO Auto-generated method stub
+
 	}
 }
