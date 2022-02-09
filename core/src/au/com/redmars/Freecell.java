@@ -178,7 +178,7 @@ public class Freecell implements Tableau {
         board.forEach(c -> copy.add((Column)c.clone()));
         undo.add(copy);
         System.out.println("UNDO LIST:  ----------");
-        undo.forEach(c -> System.out.printf("HASHCODE: %s\n",c.hashCode()));
+        undo.forEach(c -> System.out.println(c.toString()));
     }
 
     @Override

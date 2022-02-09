@@ -3,6 +3,7 @@ package au.com.redmars;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
@@ -58,5 +59,13 @@ public class Column {
 		this.maxCards = maxCards;
 		this.hitbox = hitbox;
 		cards = new ArrayList<>();
+	}
+
+	public String toString() {
+		
+		return String.format("{Column: {index: %d,maxCards: %d,cards: {%s}}",
+			index,
+			maxCards,
+			cards.stream().map(c -> c.toString()).collect(Collectors.joining( "," ) ));
 	}
 }

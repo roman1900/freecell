@@ -15,7 +15,7 @@ public class Card {
         try {
             return (Card) super.clone();
         } catch (CloneNotSupportedException e) {
-            return new Card();
+            return new Card(this.faceValue,this.suit,this.image);
         }
     }
     public boolean isChained(Card card) {
@@ -45,10 +45,6 @@ public class Card {
         return colour == 0 ? "Black" : "Red";
     }
 
-    public String toString() {
-        return String.format("Value:%2d Colour: %s Suit: %s Row: %d", faceValue, cardColour(), suitString(), col);
-    }
-
     Card(Integer faceValue, Integer suit, Sprite image) {
         this.faceValue = faceValue;
         this.suit = suit;
@@ -72,5 +68,10 @@ public class Card {
 
     Card() {
         canGrab = false;
+    }
+
+    public String toString() {
+        return String.format("{Card: {faceValue: %d,colour: %d,suit: %d,image: {},canGrab: %b, Column: %d}}",
+            faceValue,colour,suit,canGrab,col);
     }
 }
