@@ -30,6 +30,10 @@ public interface Tableau {
 
 	public Sound getPutDownSound();
 
+	public float getBoardMargin();
+
+	public void setBoardMargin(float margin);
+
 	public void refreshColumn(List<Card> col);
 
 	public void setupBoard();
