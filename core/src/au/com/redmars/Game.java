@@ -65,6 +65,9 @@ public class Game extends ApplicationAdapter {
 		if (Gdx.input.isKeyJustPressed(Keys.Q)) {
 			Gdx.app.exit();
 		}
+		if (Gdx.input.isKeyJustPressed(Keys.U)) {
+			solitaire.undoMove();
+		}
 		if (Gdx.input.isKeyJustPressed(Keys.M)) {
 			if (Gdx.graphics.getWidth() != width) {
 				Gdx.graphics.setWindowedMode((int) width, (int) height);

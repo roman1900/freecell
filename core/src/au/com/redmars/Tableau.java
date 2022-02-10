@@ -16,9 +16,9 @@ public interface Tableau {
 
 	public boolean canMoveChain(Column dst, Integer chainLength);
 
-	public void moveChain(Card src, Column dst);
+	public void moveChain(Card src, Column dst, List<Undo.Location> turn);
 
-	public void autoComplete();
+	public void autoComplete(List<Undo.Location> turn);
 
 	public void refreshBoard();
 
@@ -49,4 +49,7 @@ public interface Tableau {
 	public void viewEvent();
 
 	public void dispose();
+
+	public void undoMove();
+
 }
