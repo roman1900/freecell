@@ -10,14 +10,6 @@ public class Card {
     boolean canGrab;
     Integer col;
 
-    @Override 
-    public Object clone() {
-        try {
-            return (Card) super.clone();
-        } catch (CloneNotSupportedException e) {
-            return new Card(this.faceValue,this.suit,this.image);
-        }
-    }
     public boolean isChained(Card card) {
         return faceValue - card.faceValue == 1 && colour != card.colour;
     }
@@ -71,7 +63,7 @@ public class Card {
     }
 
     public String toString() {
-        return String.format("{Card: {faceValue: %d,colour: %d,suit: %d,image: {},canGrab: %b, Column: %d}}",
-            faceValue,colour,suit,canGrab,col);
+        return String.format("{Card: {faceValue: %d,colour: %s,suit: %s,image: {},canGrab: %b, Column: %d}}",
+                faceValue, cardColour(), suitString(), canGrab, col);
     }
 }

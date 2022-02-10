@@ -30,12 +30,12 @@ public class Spider implements Tableau {
 	}
 
 	@Override
-	public void moveChain(Card src, Column dst) {
+	public void moveChain(Card src, Column dst,List<Undo.Location> turn) {
 
 	}
 
 	@Override
-	public void autoComplete() {
+	public void autoComplete(List<Undo.Location> turn) {
 
 	}
 

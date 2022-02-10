@@ -1,8 +1,6 @@
 package au.com.redmars;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Objects;
@@ -17,7 +15,6 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Rectangle;
@@ -40,12 +37,12 @@ public class Freecell implements Tableau {
     Card dragging;
     Card viewing;
     Card[] deck = new Card[deckSize + 4];
-    List<List<Column>> undo = new ArrayList<>();
     List<Column> board = new ArrayList<>();
     List<Column> homeCells = new ArrayList<>();
     Texture cardTileSet = new Texture("classic_13x4x560x780.png");
     Sound pickupSound;
     Sound putDownSound;
+    Undo undo;
 
     public int getCardMargin() {
         return cardMargin;
@@ -95,11 +92,13 @@ public class Freecell implements Tableau {
     }
 
     @Override
-    public void moveChain(Card src, Column dst) {
+    public void moveChain(Card src, Column dst, List<Undo.Location> turn) {
 
         Column srcCol = board.get(src.col);
         List<Card> movingCards = srcCol.cards.subList(srcCol.cards.indexOf(src), srcCol.cards.size());
         movingCards.forEach(c -> {
+            Undo.Location l = undo.new Location(c, c.col);
+            turn.add(l);
             c.col = dst.index;
         });
         dst.cards.addAll(movingCards);
@@ -140,17 +139,17 @@ public class Freecell implements Tableau {
     }
 
     @Override
-    public void autoComplete() {
+    public void autoComplete(List<Undo.Location> turn) {
         board.stream().filter(c -> !c.cards.isEmpty()).forEach(c -> {
             Card last = lastCard(c.cards);
             Column hc = homeCells.get(last.suit);
             if (last.faceValue <= lowestHomeCell() && nextHomeCellCard(hc.cards) == last.faceValue) {
                 hc.cards.add(last);
-                c.cards.remove(last);
+                c.cards.remove(last); //TODO:ADD TO TURN
                 refreshBoard();
                 putDownSound.play();
                 last.image.setPosition(hc.hitbox.x, hc.hitbox.y);
-                autoComplete();
+                autoComplete(turn);
             }
         });
     }
@@ -174,11 +173,7 @@ public class Freecell implements Tableau {
             if (!b.cards.isEmpty())
                 b.populateHitBoxes(cardGap);
         });
-        List<Column> copy = new ArrayList<>();
-        board.forEach(c -> copy.add((Column)c.clone()));
-        undo.add(copy);
-        System.out.println("UNDO LIST:  ----------");
-        undo.forEach(c -> System.out.println(c.toString()));
+        
     }
 
     @Override
@@ -334,6 +329,8 @@ public class Freecell implements Tableau {
         currentMouse = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0);
         camera.unproject(currentMouse);
         if (!Objects.isNull(dragging)) {
+            //Add a new turn to the undo stack
+            List<Undo.Location> turn = new ArrayList<>();
             Optional<Column> destination = board.stream()
                     .filter(b -> b.hitbox.contains(currentMouse.x, currentMouse.y)).findFirst();
             destination.ifPresentOrElse(dst -> {
@@ -341,7 +338,7 @@ public class Freecell implements Tableau {
                     int chainLength = chainLength(dragging);
                     if ((chainLength > 1 && dst.maxCards > 1 && canMoveChain(dst, chainLength))
                             || (chainLength == 1 && dst.cards.size() < dst.maxCards)) {
-                        moveChain(dragging, dst);
+                        moveChain(dragging, dst, turn);
                         putDownSound.play();
                     }
                 }
@@ -352,17 +349,19 @@ public class Freecell implements Tableau {
                     if (x.index == dragging.suit
                             && ((x.cards.isEmpty() && dragging.faceValue == 0) || (!x.cards.isEmpty()
                                     && x.cards.get(x.cards.size() - 1).faceValue == dragging.faceValue - 1))) {
+                        Undo.Location l = undo.new Location(dragging,dragging.col);
                         x.cards.add(dragging);
                         board.get(dragging.col).cards.remove(dragging);
                         putDownSound.play();
                         dragging.image.setPosition(x.hitbox.x, x.hitbox.y);
+                        turn.add(l);
                     }
                 });
             });
             refreshBoard();
             dragging = null;
             startDragMousePos = null;
-            autoComplete();
+            autoComplete(turn);
         }
         viewing = null;
     }
@@ -388,6 +387,7 @@ public class Freecell implements Tableau {
         this.batch = batch;
         this.shapeRenderer = shapeRenderer;
         this.boardMargin = camera.viewportWidth / 2 - (cardWidth * 4.0F + cardMargin * 3.5F);
+        this.undo = new Undo();
         for (int c = 0; c < deckSize; ++c) {
             int a = c % 13;
             int b = c / 13;
@@ -399,10 +399,7 @@ public class Freecell implements Tableau {
 
     @Override
     public void undoMove() {
-        undo.forEach(x -> System.out.printf("Hashcode: %s\n", x.hashCode()));
-        undo.remove(undo.size() - 1);
-        board = new ArrayList<>();
-        undo.get(undo.size() - 1).forEach(c -> board.add((Column)c.clone()));
+        
         refreshBoard();
     }
 

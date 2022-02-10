@@ -20,36 +20,25 @@ public class Column {
 	public List<Card> cards;
 	public Rectangle[] cardHitBoxes;
 	public Rectangle hitbox;
-	
-	private Column columnClone;
-
-	@Override
-	public Object clone() {
-		columnClone = null;
-		try {
-			columnClone = (Column) super.clone();
-		} catch (CloneNotSupportedException e) {
-			columnClone = new Column(this.index, this.maxCards, this.hitbox);
-		}
-		cards.forEach(x -> columnClone.cards.add((Card)x.clone()));
-		return columnClone;
-	}
 
 	public void populateHitBoxes(float cardGap) {
 		float topOfStack = hitbox.y + hitbox.height;
 		cardHitBoxes = new Rectangle[cards.size()];
 		int index = 1;
 		while (index < cards.size()) {
-			cardHitBoxes[index - 1] = new Rectangle(hitbox.x,topOfStack - cardGap * index, hitbox.width, cardGap);
+			cardHitBoxes[index - 1] = new Rectangle(hitbox.x, topOfStack - cardGap * index, hitbox.width, cardGap);
 			index++;
 		}
-		cardHitBoxes[index - 1] = new Rectangle(hitbox.x,topOfStack - (cardGap * (index - 1)) - 780, hitbox.width, 780);
+		cardHitBoxes[index - 1] = new Rectangle(hitbox.x, topOfStack - (cardGap * (index - 1)) - 780, hitbox.width,
+				780);
 	}
 
 	public Optional<Card> touchingCard(Vector3 touch) {
-		if(cards.isEmpty()) return Optional.empty();
-		for(int i = 0; i < cards.size(); ++i) {
-			if (cardHitBoxes[i].contains(touch.x,touch.y)) return Optional.ofNullable(cards.get(i));
+		if (cards.isEmpty())
+			return Optional.empty();
+		for (int i = 0; i < cards.size(); ++i) {
+			if (cardHitBoxes[i].contains(touch.x, touch.y))
+				return Optional.ofNullable(cards.get(i));
 		}
 		return Optional.empty();
 	}
@@ -62,10 +51,10 @@ public class Column {
 	}
 
 	public String toString() {
-		
+
 		return String.format("{Column: {index: %d,maxCards: %d,cards: {%s}}",
-			index,
-			maxCards,
-			cards.stream().map(c -> c.toString()).collect(Collectors.joining( "," ) ));
+				index,
+				maxCards,
+				cards.stream().map(c -> c.toString()).collect(Collectors.joining(",")));
 	}
 }
