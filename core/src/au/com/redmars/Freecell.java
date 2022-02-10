@@ -144,8 +144,10 @@ public class Freecell implements Tableau {
             Card last = lastCard(c.cards);
             Column hc = homeCells.get(last.suit);
             if (last.faceValue <= lowestHomeCell() && nextHomeCellCard(hc.cards) == last.faceValue) {
+                Undo.Location l = undo.new Location(last, last.col);
+                turn.add(l);
                 hc.cards.add(last);
-                c.cards.remove(last); //TODO:ADD TO TURN
+                c.cards.remove(last);
                 refreshBoard();
                 putDownSound.play();
                 last.image.setPosition(hc.hitbox.x, hc.hitbox.y);
@@ -173,7 +175,7 @@ public class Freecell implements Tableau {
             if (!b.cards.isEmpty())
                 b.populateHitBoxes(cardGap);
         });
-        
+
     }
 
     @Override
@@ -329,7 +331,7 @@ public class Freecell implements Tableau {
         currentMouse = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0);
         camera.unproject(currentMouse);
         if (!Objects.isNull(dragging)) {
-            //Add a new turn to the undo stack
+            // Add a new turn to the undo stack
             List<Undo.Location> turn = new ArrayList<>();
             Optional<Column> destination = board.stream()
                     .filter(b -> b.hitbox.contains(currentMouse.x, currentMouse.y)).findFirst();
@@ -349,7 +351,7 @@ public class Freecell implements Tableau {
                     if (x.index == dragging.suit
                             && ((x.cards.isEmpty() && dragging.faceValue == 0) || (!x.cards.isEmpty()
                                     && x.cards.get(x.cards.size() - 1).faceValue == dragging.faceValue - 1))) {
-                        Undo.Location l = undo.new Location(dragging,dragging.col);
+                        Undo.Location l = undo.new Location(dragging, dragging.col);
                         x.cards.add(dragging);
                         board.get(dragging.col).cards.remove(dragging);
                         putDownSound.play();
@@ -362,6 +364,8 @@ public class Freecell implements Tableau {
             dragging = null;
             startDragMousePos = null;
             autoComplete(turn);
+            if (turn.size() > 0)
+                undo.turns.add(turn);
         }
         viewing = null;
     }
@@ -399,8 +403,22 @@ public class Freecell implements Tableau {
 
     @Override
     public void undoMove() {
-        
-        refreshBoard();
+        if (undo.turns.size() > 0) {
+            List<Undo.Location> lastTurn = undo.turns.get(undo.turns.size() - 1);
+            lastTurn.forEach(l -> {
+                Column src = board.get(l.card.col);
+                Column dst = board.get(l.previousColumn);
+                if (src == dst) { // Is now on a home cell
+                    src = homeCells.get(l.card.suit);
+                } else {
+                    l.card.col = l.previousColumn;
+                }
+                dst.cards.add(l.card);
+                src.cards.remove(l.card);
+            });
+            undo.turns.remove(lastTurn);
+            refreshBoard();
+        }
     }
 
 }
