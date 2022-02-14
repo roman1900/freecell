@@ -29,12 +29,13 @@ public class Game extends ApplicationAdapter {
 	@Override
 	public void create() {
 		batch = new SpriteBatch();
+		batch.enableBlending();
 		shapeRenderer = new ShapeRenderer();
 		
 		width = Gdx.graphics.getWidth(); //getDisplayMode().width; 
 		height = Gdx.graphics.getHeight(); //getDisplayMode().height;
 		
-		widthRequired = Tableau.cardWidth * 8 + Tableau.cardMargin * 11;
+		widthRequired = Tableau.cardWidth * 11 + Tableau.cardMargin * 11;
 		if (widthRequired > width) {
 			float ratio = widthRequired / width;
 			camera = new OrthographicCamera(widthRequired, height * ratio);	

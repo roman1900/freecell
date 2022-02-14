@@ -13,6 +13,7 @@ import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -210,12 +211,12 @@ public class Freecell implements Tableau {
             x = x + cardWidth + cardMargin;
         }
         for (int i = 0; i < freeCells; ++i) { // 4 Freecell columns
-            Rectangle hitbox = new Rectangle((cardMargin * 2) + (560 * i) + (cardMargin * .5F * i),
+            Rectangle hitbox = new Rectangle(boardMargin + (560 * i) + (cardMargin * .5F * i),
                     camera.viewportHeight - cardMargin - cardHeight, cardWidth, cardHeight);
             board.add(new Column(i + boardColumns, 1, hitbox));
         }
         for (int i = 4; i < 8; ++i) { // 4 Home cells
-            Rectangle hitbox = new Rectangle((cardMargin * 5.5F) + (560 * i) + (cardMargin * .5F * i),
+            Rectangle hitbox = new Rectangle((boardMargin + cardMargin * 3.5F) + (560 * i) + (cardMargin * .5F * i),
                     camera.viewportHeight - cardMargin - cardHeight, cardWidth, cardHeight);
             homeCells.add(new Column(i - 4, suitSize, hitbox));
         }
@@ -253,16 +254,15 @@ public class Freecell implements Tableau {
         shapeRenderer.begin(ShapeType.Line);
         shapeRenderer.setColor(Color.RED);
         for (int fc = 0; fc < 4; ++fc) {
-            shapeRenderer.rect((cardMargin * 2) + (560 * fc) + (cardMargin * .5F * fc),
+            shapeRenderer.rect(boardMargin + (560 * fc) + (cardMargin * .5F * fc),
                     camera.viewportHeight - cardMargin - cardHeight, cardWidth, cardHeight);
         }
         for (int fc = 4; fc < 8; ++fc) {
-            shapeRenderer.rect((cardMargin * 5.5F) + (560 * fc) + (cardMargin * .5F * fc),
+            shapeRenderer.rect((boardMargin + cardMargin * 3.5F) + (560 * fc) + (cardMargin * .5F * fc),
                     camera.viewportHeight - cardMargin - cardHeight, cardWidth, cardHeight);
         }
         shapeRenderer.end();
         batch.begin();
-        batch.disableBlending();
         board.forEach(column -> column.cards.forEach(card -> {
             card.image.draw(batch);
         }));
@@ -392,12 +392,14 @@ public class Freecell implements Tableau {
         this.shapeRenderer = shapeRenderer;
         this.boardMargin = camera.viewportWidth / 2 - (cardWidth * 4.0F + cardMargin * 3.5F);
         this.undo = new Undo();
+        
         for (int c = 0; c < deckSize; ++c) {
             int a = c % 13;
             int b = c / 13;
             int srcX = a * cardWidth;
             int srcY = b * cardHeight;
             deck[c] = new Card(a, b, new Sprite(cardTileSet, srcX, srcY, cardWidth, cardHeight));
+            deck[c].image.getTexture().setFilter(TextureFilter.Linear, TextureFilter.Linear); 
         }
     }
 
