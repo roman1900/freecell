@@ -16,4 +16,4 @@ Keys:
 Credits:
 Card images taken from
 Sound effects taken from https://opengameart.org/users/haeldb under public domain CC0
-Card images taken from https://opengameart.org/users/ryandansie under Creative Commons
+Card images modified from https://opengameart.org/users/ryandansie under Creative Commons
