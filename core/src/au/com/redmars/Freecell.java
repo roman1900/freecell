@@ -226,6 +226,7 @@ public class Freecell implements Tableau {
     @Override
     public void Deal() {
         setupBoard();
+        this.undo = new Undo();
         Random seeder = new Random();
         Long seed = seeder.nextLong();
         System.out.printf("Current seed: %d\n", seed);
@@ -391,8 +392,6 @@ public class Freecell implements Tableau {
         this.batch = batch;
         this.shapeRenderer = shapeRenderer;
         this.boardMargin = camera.viewportWidth / 2 - (cardWidth * 4.0F + cardMargin * 3.5F);
-        this.undo = new Undo();
-        
         for (int c = 0; c < deckSize; ++c) {
             int a = c % 13;
             int b = c / 13;
