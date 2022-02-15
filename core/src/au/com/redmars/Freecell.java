@@ -129,6 +129,34 @@ public class Freecell implements Tableau {
                 .get().cards.stream().map(c -> c.faceValue).max(Integer::compare).get() + 1;
     }
 
+    private Boolean canAutoMoveHome(Card c) {
+        List<Column> suitHC = new ArrayList<>();
+        Integer lowest;
+        switch (c.colour) {
+            case 0:
+            case 3:
+                suitHC.add(homeCells.get(1));
+                suitHC.add(homeCells.get(2));
+                break;
+            case 1:
+            case 2:
+                suitHC.add(homeCells.get(0));
+                suitHC.add(homeCells.get(3));
+                break;
+        }
+        if (suitHC.stream()
+        .anyMatch(x -> x.cards.isEmpty()))
+        {
+            lowest = 1;
+        }
+        else {
+            lowest = suitHC.stream()
+            .min((b, d) -> b.cards.get(b.cards.size() - 1).faceValue - d.cards.get(d.cards.size() - 1).faceValue)
+            .get().cards.stream().map(d -> d.faceValue).max(Integer::compare).get() + 1;
+        }
+        return c.faceValue <= lowest;
+    }
+
     public Integer nextHomeCellCard(List<Card> cardList) {
         if (cardList.isEmpty())
             return 0;
@@ -144,7 +172,7 @@ public class Freecell implements Tableau {
         board.stream().filter(c -> !c.cards.isEmpty()).forEach(c -> {
             Card last = lastCard(c.cards);
             Column hc = homeCells.get(last.suit);
-            if (last.faceValue <= lowestHomeCell() && nextHomeCellCard(hc.cards) == last.faceValue) {
+            if (nextHomeCellCard(hc.cards) == last.faceValue && canAutoMoveHome(last)) {
                 Undo.Location l = undo.new Location(last, last.col);
                 turn.add(l);
                 hc.cards.add(last);
