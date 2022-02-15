@@ -35,6 +35,7 @@ public class Freecell implements Tableau {
     private Integer cardGap;
     private float boardMargin;
     private Vector3 startDragMousePos;
+    private List<Sprite> homeCellImages = new ArrayList<>();
     Card dragging;
     Card viewing;
     Card[] deck = new Card[deckSize + 4];
@@ -145,14 +146,13 @@ public class Freecell implements Tableau {
                 break;
         }
         if (suitHC.stream()
-        .anyMatch(x -> x.cards.isEmpty()))
-        {
+                .anyMatch(x -> x.cards.isEmpty())) {
             lowest = 1;
-        }
-        else {
+        } else {
             lowest = suitHC.stream()
-            .min((b, d) -> b.cards.get(b.cards.size() - 1).faceValue - d.cards.get(d.cards.size() - 1).faceValue)
-            .get().cards.stream().map(d -> d.faceValue).max(Integer::compare).get() + 1;
+                    .min((b, d) -> b.cards.get(b.cards.size() - 1).faceValue
+                            - d.cards.get(d.cards.size() - 1).faceValue)
+                    .get().cards.stream().map(d -> d.faceValue).max(Integer::compare).get() + 1;
         }
         return c.faceValue <= lowest;
     }
@@ -232,6 +232,7 @@ public class Freecell implements Tableau {
     public void setupBoard() {
         board.clear();
         homeCells.clear();
+        homeCellImages.clear();
         float y = camera.viewportHeight - cardMargin * 2 - cardHeight;
         float x = boardMargin;
         for (int i = 0; i < boardColumns; ++i) { // 8 playing columns
@@ -247,8 +248,11 @@ public class Freecell implements Tableau {
             Rectangle hitbox = new Rectangle((boardMargin + cardMargin * 3.5F) + (560 * i) + (cardMargin * .5F * i),
                     camera.viewportHeight - cardMargin - cardHeight, cardWidth, cardHeight);
             homeCells.add(new Column(i - 4, suitSize, hitbox));
+            Sprite s = new Sprite(cardTileSet, 0, 780 * (i - 4), cardWidth, cardHeight);
+            s.setPosition(hitbox.x, hitbox.y);
+            s.setAlpha(0.35f);
+            homeCellImages.add(s);
         }
-
     }
 
     @Override
@@ -286,12 +290,11 @@ public class Freecell implements Tableau {
             shapeRenderer.rect(boardMargin + (560 * fc) + (cardMargin * .5F * fc),
                     camera.viewportHeight - cardMargin - cardHeight, cardWidth, cardHeight);
         }
-        for (int fc = 4; fc < 8; ++fc) {
-            shapeRenderer.rect((boardMargin + cardMargin * 3.5F) + (560 * fc) + (cardMargin * .5F * fc),
-                    camera.viewportHeight - cardMargin - cardHeight, cardWidth, cardHeight);
-        }
         shapeRenderer.end();
         batch.begin();
+        for (int fc = 4; fc < 8; ++fc) {
+            homeCellImages.get(fc - 4).draw(batch);
+        }
         board.forEach(column -> column.cards.forEach(card -> {
             card.image.draw(batch);
         }));
@@ -426,7 +429,7 @@ public class Freecell implements Tableau {
             int srcX = a * cardWidth;
             int srcY = b * cardHeight;
             deck[c] = new Card(a, b, new Sprite(cardTileSet, srcX, srcY, cardWidth, cardHeight));
-            deck[c].image.getTexture().setFilter(TextureFilter.Linear, TextureFilter.Linear); 
+            deck[c].image.getTexture().setFilter(TextureFilter.Linear, TextureFilter.Linear);
         }
     }
 
