@@ -26,9 +26,13 @@ public interface Tableau {
 
 	public void setPutDownSound(Sound sound);
 
+	public void setNoGoSound(Sound sound);
+
 	public Sound getPickupSound();
 
 	public Sound getPutDownSound();
+
+	public Sound getNoGoSound();
 
 	public float getBoardMargin();
 
@@ -51,5 +55,6 @@ public interface Tableau {
 	public void dispose();
 
 	public void undoMove();
+
 
 }

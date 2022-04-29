@@ -44,6 +44,7 @@ public class Freecell implements Tableau {
     Texture cardTileSet = new Texture("classic_13x4x560x780.png");
     Sound pickupSound;
     Sound putDownSound;
+    Sound noGoSound;
     Undo undo;
 
     public int getCardMargin() {
@@ -277,7 +278,7 @@ public class Freecell implements Tableau {
         for (int i = 0; i < deckSize; ++i) {
             board.get(i % boardColumns).cards.add(deck[i]);
             deck[i].col = i % boardColumns;
-            putDownSound.play();
+            //putDownSound.play();
         }
         refreshBoard();
     }
@@ -317,6 +318,11 @@ public class Freecell implements Tableau {
     }
 
     @Override
+    public void setNoGoSound(Sound sound) {
+        noGoSound = sound;
+    }
+
+    @Override
     public Sound getPickupSound() {
         return pickupSound;
     }
@@ -324,6 +330,11 @@ public class Freecell implements Tableau {
     @Override
     public Sound getPutDownSound() {
         return putDownSound;
+    }
+
+    @Override
+    public Sound getNoGoSound() {
+        return noGoSound;
     }
 
     @Override
@@ -375,6 +386,8 @@ public class Freecell implements Tableau {
                         moveChain(dragging, dst, turn);
                         putDownSound.play();
                     }
+                } else {
+                    noGoSound.play();
                 }
             }, () -> {
                 Optional<Column> homecell = homeCells.stream()
@@ -389,6 +402,8 @@ public class Freecell implements Tableau {
                         putDownSound.play();
                         dragging.image.setPosition(x.hitbox.x, x.hitbox.y);
                         turn.add(l);
+                    } else {
+                        noGoSound.play();
                     }
                 });
             });

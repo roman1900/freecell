@@ -48,7 +48,8 @@ public class Game extends ApplicationAdapter {
 		System.out.printf("viewport size: %f x %f\n",viewport.getWorldWidth(),viewport.getWorldHeight());
 		solitaire = new Freecell(batch, camera, shapeRenderer);
 		solitaire.setPickupSound(Gdx.audio.newSound(Gdx.files.internal("draw.wav")));
-		solitaire.setPutDownSound(Gdx.audio.newSound(Gdx.files.internal("playcard.wav")));
+		solitaire.setPutDownSound(Gdx.audio.newSound(Gdx.files.internal("down.wav")));
+		solitaire.setNoGoSound(Gdx.audio.newSound(Gdx.files.internal("ding.mp3")));
 		solitaire.Deal();
 	}
 

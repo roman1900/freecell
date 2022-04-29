@@ -132,4 +132,16 @@ public class Spider implements Tableau {
 		// TODO Auto-generated method stub
 
 	}
+
+	@Override
+	public void setNoGoSound(Sound sound) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public Sound getNoGoSound() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
