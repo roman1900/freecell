@@ -2,7 +2,7 @@ package au.com.redmars.desktop;
 
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
-import au.com.redmars.Game;
+import au.com.redmars.Solitaire;
 
 public class DesktopLauncher {
 	public static void main (String[] arg) {
@@ -10,6 +10,6 @@ public class DesktopLauncher {
 		config.width = 1920;
 		config.height = 1080;
 		
-		new LwjglApplication(new Game(), config);
+		new LwjglApplication(new Solitaire(), config);
 	}
 }
