@@ -11,6 +11,8 @@ Keys:
 
 - D - Redeal a new game
 - Q - Quit the game
+- U - Undo last move
+- B - Boss Key
 
 
 Credits:
