@@ -1,6 +1,7 @@
 package au.com.redmars;
 
 import com.badlogic.gdx.Game;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -12,7 +13,7 @@ public class Solitaire extends Game {
 
 	public void create() {
 		batch = new SpriteBatch();
-		font = new BitmapFont(); // use libGDX's default Arial font
+		font = new BitmapFont(Gdx.files.internal("font.fnt"));
 		batch.enableBlending();
 		shapeRenderer = new ShapeRenderer();
 		this.setScreen(new MainMenuScreen(this));

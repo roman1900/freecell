@@ -3,6 +3,7 @@ package au.com.redmars;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 public class MainMenuScreen implements Screen {
@@ -14,7 +15,7 @@ public class MainMenuScreen implements Screen {
 		this.game = game;
 
 		camera = new OrthographicCamera();
-		camera.setToOrtho(false, 1920, 1080);
+		camera.setToOrtho(false, 800, 400);
 	}
 	@Override
 	public void render(float delta) {
@@ -24,9 +25,10 @@ public class MainMenuScreen implements Screen {
 		game.batch.setProjectionMatrix(camera.combined);
 
 		game.batch.begin();
-		game.font.getData().setScale(2);
-		game.font.draw(game.batch, "Freecell", 900, 900);
-		game.font.draw(game.batch, "Tap anywhere to begin!", 900, 800);
+		GlyphLayout gLayout = new GlyphLayout(game.font,"Freecell");
+		game.font.draw(game.batch, "Freecell", camera.viewportWidth / 2 - gLayout.width / 2, 300);
+		gLayout = new GlyphLayout(game.font,"Tap anywhere to begin!");
+		game.font.draw(game.batch, "Tap anywhere to begin!", camera.viewportWidth / 2 - gLayout.width / 2, 300-game.font.getLineHeight());
 		game.batch.end();
 
 		if (Gdx.input.isTouched()) {
