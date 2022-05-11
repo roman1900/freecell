@@ -5,13 +5,10 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.utils.ScreenUtils;
-import com.badlogic.gdx.utils.viewport.StretchViewport;
-import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class GameScreen implements Screen{
 	final Solitaire game;
 	OrthographicCamera camera;
-	Viewport viewport;
 	Tableau solitaire;
 	float width;
 	float height;
@@ -19,8 +16,8 @@ public class GameScreen implements Screen{
 
 	public GameScreen(final Solitaire game) {
 		this.game = game;
-		width = Gdx.graphics.getWidth(); //getDisplayMode().width; 
-		height = Gdx.graphics.getHeight(); //getDisplayMode().height;
+		width = Gdx.graphics.getWidth(); 
+		height = Gdx.graphics.getHeight(); 
 		widthRequired = Tableau.cardWidth * 11 + Tableau.cardMargin * 11;
 		if (widthRequired > width) {
 			float ratio = widthRequired / width;
@@ -30,8 +27,6 @@ public class GameScreen implements Screen{
 			camera = new OrthographicCamera(width, height);
 		}
 		camera.position.set(camera.viewportWidth / 2, camera.viewportHeight / 2, 0);
-		viewport = new StretchViewport(camera.viewportWidth, camera.viewportHeight, camera);
-		System.out.printf("viewport size: %f x %f\n",viewport.getWorldWidth(),viewport.getWorldHeight());
 		solitaire = new Freecell(game.batch, camera, game.shapeRenderer);
 		solitaire.setPickupSound(Gdx.audio.newSound(Gdx.files.internal("draw.wav")));
 		solitaire.setPutDownSound(Gdx.audio.newSound(Gdx.files.internal("down.wav")));
@@ -41,7 +36,6 @@ public class GameScreen implements Screen{
 	@Override
 	public void show() {
 		// TODO Auto-generated method stub
-		
 	}
 	@Override
 	public void render(float delta) {
