@@ -48,7 +48,7 @@ public interface Tableau {
 
 	public void touchEvent();
 
-	public void moveEvent();
+	public Boolean moveEvent();
 
 	public void viewEvent();
 

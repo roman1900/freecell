@@ -1,5 +1,7 @@
 package au.com.redmars;
 
+import java.sql.Time;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.Input.Keys;
@@ -13,6 +15,10 @@ public class GameScreen implements Screen{
 	float width;
 	float height;
 	Integer widthRequired;
+	private float timer = 0f;
+    private float period = 1f;
+    private Time elapsed = new Time(0);
+	private Boolean gameOver = false;
 
 	public GameScreen(final Solitaire game) {
 		this.game = game;
@@ -41,8 +47,17 @@ public class GameScreen implements Screen{
 	public void render(float delta) {
 		ScreenUtils.clear(0.3F, 1, 0.3F, 1);
 		camera.update();
+		timer += Gdx.graphics.getDeltaTime();
+        if (timer >= period) {
+            elapsed.setTime(elapsed.getTime()+(long)(timer*1000));
+			timer = 0;
+        }
+
 		game.batch.setProjectionMatrix(camera.combined);
 		game.shapeRenderer.setProjectionMatrix(camera.combined);
+		game.batch.begin();
+		game.largeFont.draw(game.batch,elapsed.toString(),100,200);
+		game.batch.end();
 		solitaire.drawBoard();
 		if (Gdx.input.isKeyJustPressed(Keys.D)) {
 			solitaire.Deal();
@@ -63,10 +78,12 @@ public class GameScreen implements Screen{
 		if (Gdx.input.isTouched()) {
 			solitaire.touchEvent();
 		} else {
-			solitaire.moveEvent();
+			gameOver = solitaire.moveEvent();
 		}
 		solitaire.viewEvent();
-		
+		if (gameOver) {
+			solitaire.Deal();
+		}
 	}
 	@Override
 	public void resize(int width, int height) {

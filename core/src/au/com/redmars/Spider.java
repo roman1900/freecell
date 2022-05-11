@@ -98,8 +98,9 @@ public class Spider implements Tableau {
 	}
 
 	@Override
-	public void moveEvent() {
+	public Boolean moveEvent() {
 		// TODO Auto-generated method stub
+		return false;
 
 	}
 

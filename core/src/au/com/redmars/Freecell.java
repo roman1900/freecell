@@ -36,6 +36,8 @@ public class Freecell implements Tableau {
     private float boardMargin;
     private Vector3 startDragMousePos;
     private List<Sprite> homeCellImages = new ArrayList<>();
+    private Boolean gameover = false;
+    
     Card dragging;
     Card viewing;
     Card[] deck = new Card[deckSize + 4];
@@ -184,6 +186,8 @@ public class Freecell implements Tableau {
                 autoComplete(turn);
             }
         });
+        gameover = true;
+        board.forEach(x -> {if (!x.cards.isEmpty()){gameover=false;} } );
     }
 
     @Override
@@ -259,6 +263,7 @@ public class Freecell implements Tableau {
     @Override
     public void Deal() {
         setupBoard();
+        gameover = false;
         this.undo = new Undo();
         Random seeder = new Random();
         Long seed = seeder.nextLong();
@@ -304,6 +309,7 @@ public class Freecell implements Tableau {
                 hc.cards.get(hc.cards.size() - 1).image.draw(batch);
             }
         });
+
         batch.end();
     }
 
@@ -370,7 +376,7 @@ public class Freecell implements Tableau {
     }
 
     @Override
-    public void moveEvent() {
+    public Boolean moveEvent() {
         currentMouse = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0);
         camera.unproject(currentMouse);
         if (!Objects.isNull(dragging)) {
@@ -415,6 +421,7 @@ public class Freecell implements Tableau {
                 undo.turns.add(turn);
         }
         viewing = null;
+        return gameover;
     }
 
     @Override
