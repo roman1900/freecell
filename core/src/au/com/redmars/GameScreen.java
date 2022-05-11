@@ -1,10 +1,11 @@
 package au.com.redmars;
 
-import java.sql.Time;
+import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.Input.Keys;
+import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.utils.ScreenUtils;
 
@@ -17,7 +18,7 @@ public class GameScreen implements Screen{
 	Integer widthRequired;
 	private float timer = 0f;
     private float period = 1f;
-    private Time elapsed = new Time(0);
+    private LocalTime elapsed = LocalTime.now();
 	private Boolean gameOver = false;
 
 	public GameScreen(final Solitaire game) {
@@ -49,17 +50,20 @@ public class GameScreen implements Screen{
 		camera.update();
 		timer += Gdx.graphics.getDeltaTime();
         if (timer >= period) {
-            elapsed.setTime(elapsed.getTime()+(long)(timer*1000));
-			timer = 0;
+			//elapsed = elapsed.plus((long)(timer*1000), ChronoUnit.MILLIS);
+            timer = 0;
         }
 
 		game.batch.setProjectionMatrix(camera.combined);
 		game.shapeRenderer.setProjectionMatrix(camera.combined);
 		game.batch.begin();
-		game.largeFont.draw(game.batch,elapsed.toString(),100,200);
+		long seconds = ChronoUnit.SECONDS.between(elapsed,LocalTime.now());
+
+		game.largeFont.draw(game.batch,LocalTime.ofSecondOfDay(seconds).toString(),100,200);
 		game.batch.end();
 		solitaire.drawBoard();
 		if (Gdx.input.isKeyJustPressed(Keys.D)) {
+			elapsed = LocalTime.now();
 			solitaire.Deal();
 		}
 		if (Gdx.input.isKeyJustPressed(Keys.Q)) {
@@ -82,6 +86,7 @@ public class GameScreen implements Screen{
 		}
 		solitaire.viewEvent();
 		if (gameOver) {
+			elapsed = LocalTime.now();
 			solitaire.Deal();
 		}
 	}
