@@ -45,13 +45,13 @@ public class Card {
                 this.colour = 0;
                 break;
             case 1:
-                this.colour = 1;
+                this.colour = 0;
                 break;
             case 2:
                 this.colour = 1;
                 break;
             case 3:
-                this.colour = 0;
+                this.colour = 1;
                 break;
         }
         this.image = image;

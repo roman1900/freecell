@@ -8,9 +8,9 @@ public interface Tableau {
 
 	public final Integer deckSize = 52;
 	public final Integer suitSize = 13;
-	public final Integer cardHeight = 780;
-	public final Integer cardWidth = 560;
-	public final Integer cardMargin = 56;
+	public final Integer cardHeight = 126;
+	public final Integer cardWidth = 90;
+	public final Integer cardMargin = 9;
 
 	public int chainLength(Card card);
 
