@@ -37,13 +37,16 @@ public class Freecell implements Tableau {
     private Vector3 startDragMousePos;
     private List<Sprite> homeCellImages = new ArrayList<>();
     private Boolean gameover = false;
+
     
     Card dragging;
     Card viewing;
     Card[] deck = new Card[deckSize + 4];
     List<Column> board = new ArrayList<>();
     List<Column> homeCells = new ArrayList<>();
-    Texture cardTileSet = new Texture("classic_13x4x560x780.png");
+    Texture smallCardTileSet = new Texture("cards/Plebes_Update003-FIX_1x_V1_moved_face_colour_match.png");
+    Texture largeCardTileSet = new Texture("cards/Plebes_Update003-FIX_4x_V1.png");
+    Texture smallCardBack = new Texture("cards/PixelPlebes_V1_1x__Card_Back.png");
     Sound pickupSound;
     Sound putDownSound;
     Sound noGoSound;
@@ -196,7 +199,7 @@ public class Freecell implements Tableau {
             y = startY;
             if (b.index >= boardColumns)
                 y = b.hitbox.y; // This is a free or home cell
-            cardGap = 160; // The gap between cards in a column
+            cardGap = (int)(cardHeight * .3); // The gap between cards in a column
             while (y - (cardGap * (b.cards.size() - 1)) < 0 && cardGap > 20) { // Adjust the gap if the cards would be
                                                                                // placed off screen
                 cardGap -= 5;
@@ -245,15 +248,15 @@ public class Freecell implements Tableau {
             x = x + cardWidth + cardMargin;
         }
         for (int i = 0; i < freeCells; ++i) { // 4 Freecell columns
-            Rectangle hitbox = new Rectangle(boardMargin + (560 * i) + (cardMargin * .5F * i),
+            Rectangle hitbox = new Rectangle(boardMargin + (cardWidth * i) + (cardMargin * .5F * i),
                     camera.viewportHeight - cardMargin - cardHeight, cardWidth, cardHeight);
             board.add(new Column(i + boardColumns, 1, hitbox));
         }
         for (int i = 4; i < 8; ++i) { // 4 Home cells
-            Rectangle hitbox = new Rectangle((boardMargin + cardMargin * 3.5F) + (560 * i) + (cardMargin * .5F * i),
+            Rectangle hitbox = new Rectangle((boardMargin + cardMargin * 3.5F) + (cardWidth * i) + (cardMargin * .5F * i),
                     camera.viewportHeight - cardMargin - cardHeight, cardWidth, cardHeight);
             homeCells.add(new Column(i - 4, suitSize, hitbox));
-            Sprite s = new Sprite(cardTileSet, 0, 780 * (i - 4), cardWidth, cardHeight);
+            Sprite s = new Sprite(smallCardTileSet, 0, cardHeight * (i - 4), cardWidth, cardHeight);
             s.setPosition(hitbox.x, hitbox.y);
             s.setAlpha(0.35f);
             homeCellImages.add(s);
@@ -290,14 +293,10 @@ public class Freecell implements Tableau {
 
     @Override
     public void drawBoard() {
-        shapeRenderer.begin(ShapeType.Line);
-        shapeRenderer.setColor(Color.RED);
-        for (int fc = 0; fc < 4; ++fc) {
-            shapeRenderer.rect(boardMargin + (560 * fc) + (cardMargin * .5F * fc),
-                    camera.viewportHeight - cardMargin - cardHeight, cardWidth, cardHeight);
-        }
-        shapeRenderer.end();
         batch.begin();
+        for (int fc = 0; fc < 4; ++fc) {
+            batch.draw(smallCardBack, boardMargin + (cardWidth * fc) + (cardMargin * .5F * fc), camera.viewportHeight - cardMargin - cardHeight);
+        }
         for (int fc = 4; fc < 8; ++fc) {
             homeCellImages.get(fc - 4).draw(batch);
         }
@@ -435,7 +434,8 @@ public class Freecell implements Tableau {
 
     @Override
     public void dispose() {
-        cardTileSet.dispose();
+        smallCardTileSet.dispose();
+        smallCardBack.dispose();
         putDownSound.dispose();
         pickupSound.dispose();
     }
@@ -450,7 +450,7 @@ public class Freecell implements Tableau {
             int b = c / 13;
             int srcX = a * cardWidth;
             int srcY = b * cardHeight;
-            deck[c] = new Card(a, b, new Sprite(cardTileSet, srcX, srcY, cardWidth, cardHeight));
+            deck[c] = new Card(a, b, new Sprite(smallCardTileSet, srcX, srcY, cardWidth, cardHeight));
             deck[c].image.getTexture().setFilter(TextureFilter.Linear, TextureFilter.Linear);
         }
     }
