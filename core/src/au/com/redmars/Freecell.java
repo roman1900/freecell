@@ -301,7 +301,11 @@ public class Freecell implements Tableau {
             homeCellImages.get(fc - 4).draw(batch);
         }
         board.forEach(column -> column.cards.forEach(card -> {
-            card.image.draw(batch);
+            if (card.animation != null) {
+                batch.draw(card.getFrame(Gdx.graphics.getDeltaTime()),card.image.getX(),card.image.getY());
+            } else {
+                card.image.draw(batch);
+            }
         }));
         homeCells.forEach(hc -> {
             if (!hc.cards.isEmpty()) {
@@ -446,12 +450,15 @@ public class Freecell implements Tableau {
         this.shapeRenderer = shapeRenderer;
         this.boardMargin = camera.viewportWidth / 2 - (cardWidth * 4.0F + cardMargin * 3.5F);
         for (int c = 0; c < deckSize; ++c) {
-            int a = c % 13;
-            int b = c / 13;
-            int srcX = a * cardWidth;
-            int srcY = b * cardHeight;
-            deck[c] = new Card(a, b, new Sprite(smallCardTileSet, srcX, srcY, cardWidth, cardHeight));
+            int faceValue = c % 13;
+            int suit = c / 13;
+            int srcX = faceValue * cardWidth;
+            int srcY = suit * cardHeight;
+            deck[c] = new Card(faceValue, suit, new Sprite(smallCardTileSet, srcX, srcY, cardWidth, cardHeight));
             deck[c].image.getTexture().setFilter(TextureFilter.Linear, TextureFilter.Linear);
+            if (faceValue == 0 || faceValue > 9) { //Picture Card
+                deck[c].createAnimation(new Texture(String.format("cards/Animations/%d/%d/Plebes_Anim_1x.png",faceValue,suit)));
+            }
         }
     }
 

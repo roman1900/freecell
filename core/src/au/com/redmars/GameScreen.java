@@ -46,7 +46,7 @@ public class GameScreen implements Screen{
 	}
 	@Override
 	public void render(float delta) {
-		ScreenUtils.clear(0.3F, 1, 0.3F, 1);
+		ScreenUtils.clear(0.19F, 0.611F, 0.388F, 1);
 		camera.update();
 		timer += Gdx.graphics.getDeltaTime();
         if (timer >= period) {
