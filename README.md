@@ -16,6 +16,6 @@ Keys:
 
 
 Credits:
-
+Skin created by MJ taken from https://github.com/czyzby/gdx-lml under public domain CC0 
 Sound effects taken from https://opengameart.org/users/haeldb under public domain CC0
 Music https://www.youtube.com/watch?v=lPTYPspnq8Q
