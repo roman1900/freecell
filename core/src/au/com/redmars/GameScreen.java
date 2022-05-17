@@ -57,7 +57,7 @@ public class GameScreen implements Screen{
 		game.batch.setProjectionMatrix(camera.combined);
 		game.shapeRenderer.setProjectionMatrix(camera.combined);
 		game.batch.begin();
-		//TODO:Fix timing when game spans dates. ie. start at 11:58pm and finish the next day
+		//TODO: Fix timing when game spans dates. ie. start at 11:58pm and finish the next day
 		long seconds = ChronoUnit.SECONDS.between(elapsed,LocalTime.now());
 
 		game.largeFont.draw(game.batch,LocalTime.ofSecondOfDay(seconds).toString(),100,200);
