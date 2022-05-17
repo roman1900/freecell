@@ -13,6 +13,7 @@ public class Solitaire extends Game {
 	public BitmapFont largeFont;
 	public ShapeRenderer shapeRenderer;
 	public Music bgMusic;
+	public Float fxVolume = 0.5f;
 
 	public void create() {
 		batch = new SpriteBatch();
