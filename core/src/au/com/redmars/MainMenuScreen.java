@@ -57,7 +57,7 @@ public class MainMenuScreen implements Screen {
 				if (effectsVolume.isDragging()) {
 					game.fxVolume = effectsVolume.getValue();
 				} else {
-					//TODO: Play sound effect to test volume
+					//TODO(#6): Play sound effect to test volume
 				}
 			}
 		});
